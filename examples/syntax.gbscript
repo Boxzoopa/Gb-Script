@@ -1,0 +1,45 @@
+//Ok, btw the language syntax is akin to this, albiert modifcations to syntax and general difereneces, classes(obj) are likely to look and act more like structs in the future, as I plan on making an evnutal transpiler to c
+
+import("fs.gbscript");
+import("path.gbscript");
+import("time.gbscript");
+
+obj DirectoryReader {
+  var directoryPath: str;
+
+  func mount(directoryPath: str) {
+    this.directoryPath = directoryPath;
+  }
+
+  func readRecentFiles() {
+    var allFiles: []str = fs.readDir(this.directoryPath);
+    var recentFiles: []str = [];
+
+    for file in allFiles {
+      var fullPath: str = path.join(this.directoryPath, file);
+      var fileInfo: FileInfo = fs.stat(fullPath);
+      if this.isFileRecent(fileInfo.creationTime) {
+        recentFiles.push(fullPath);
+      }
+    }
+
+    for file in recentFiles {
+      print(file, fs.stat(file).creationTime);
+    }
+  }
+
+  func isFileRecent(creationTime: Time): bool {
+    var twentyFourHoursAgo: Time = time.now() - time.hours(24);
+    creationTime > twentyFourHoursAgo;
+  }
+}
+
+func main() {
+  const directory: str = "/path/to/directory";
+  const reader = new DirectoryReader();
+  reader.mount(directory);
+  reader.readRecentFiles();
+}
+
+main();
+
