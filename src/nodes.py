@@ -75,3 +75,19 @@ class VarDeclNode:
             "var_type": self.type,
         }
 
+
+
+class GrpDeclNode:
+    def __init__(self, name, values, type_):
+        self.name = name
+        self.values = values
+        self.type = type_
+
+    def to_dict(self):
+        return {
+            "type": "group_decl",
+            "group_type": self.type,
+            "name": self.name,
+            "values": self.values,
+        }
+

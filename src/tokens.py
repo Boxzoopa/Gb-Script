@@ -30,12 +30,12 @@ class TokenType:
     COLON = "colon"
     QUESTION = "question_mark"
     COMMA = "comma"
-    LPAREN = "l_paren"
-    RPAREN = "r_paren"
-    LBRAC = "l_brace"
-    RBRAC = "r_brace"
-    LCURL = "l_curl"
-    RCURL = "r_curl"
+    LPAREN = "l_paren" # (
+    RPAREN = "r_paren" # )
+    LBRAC = "l_bracket" # [
+    RBRAC = "r_bracket" # ]
+    LCURL = "l_curl" # {
+    RCURL = "r_curl" # }
 
     # Special
     EOF = "eof"

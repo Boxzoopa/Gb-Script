@@ -21,4 +21,4 @@ def run_file(input_file, output_file=None):
 
 
 if __name__ == "__main__":
-    run_file("examples/data_types.gbscript")
+    run_file("examples/groups.gbscript")

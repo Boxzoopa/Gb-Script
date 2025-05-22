@@ -134,9 +134,9 @@ class Lexer:
         elif c == '}':
             self.tokens.append(Token(TokenType.RCURL, '}'))
         elif c == '[':
-            self.tokens.append(Token(TokenType.LBRAC, '{'))
+            self.tokens.append(Token(TokenType.LBRAC, '['))
         elif c == ']':
-            self.tokens.append(Token(TokenType.RBRAC, '}'))
+            self.tokens.append(Token(TokenType.RBRAC, ']'))
         
         
         

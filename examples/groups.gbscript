@@ -1,9 +1,3 @@
 grp nums: int = [1, 2, 3];
-grp words: str = ["hi", "bye"];
-grp flags: bool = [true, false];
+grp mags: str = ["hi", "bye"];
 
-nums[0] = 10;
-flags[1] = false;
-
-nums[0] = 5;
-var a = nums[0] + 4;

@@ -20,6 +20,7 @@ PRECEDENCE = {
 
 
 prgm_vars = []
+prgm_grps = []
 
 class Parser:
     def __init__(self, tokens):
@@ -101,11 +102,19 @@ class Parser:
             if name.kind == TokenType.IDENT:
                 if name.value in prgm_vars:
                     raise Exception(f"Variable '{name.value}' already declared.")
-            
             if tok.kind == TokenType.VAR:
                 return self.parse_var_decl(is_const=False)
             elif tok.kind == TokenType.CONST:
                 return self.parse_var_decl(is_const=True)
+            
+        
+        if tok.kind == TokenType.GRP:
+            name = self.peek(1)
+            if name.kind == TokenType.IDENT:
+                if name.value in prgm_grps:
+                    raise Exception(f"Group '{name.value}' already declared.")
+                
+                return self.parse_group_decl()
             
 
         else:
@@ -115,8 +124,9 @@ class Parser:
 
 
     def parse_expr(self, precedence=0):
-        tok = self.advance()
+        tok = self.current()
         left = self.nud(tok)
+        self.advance()  # Consume the token
 
         while precedence < PRECEDENCE.get(self.current().kind, 0):
             tok = self.advance()
@@ -165,3 +175,37 @@ class Parser:
         prgm_vars.append(name)
         #print(prgm_vars)
         return VarDeclNode(name, init, is_const, var_type).to_dict()
+
+
+    # === Group Declaration ===
+    def parse_group_decl(self):
+        self.advance()  # Consume GRP
+
+        name_tok = self.expect(TokenType.IDENT)
+        name = name_tok.value
+
+        self.expect(TokenType.COLON)
+        if self.current().kind == TokenType.INT:
+            type_tok = self.expect(TokenType.INT)
+        elif self.current().kind == TokenType.STR:
+            type_tok = self.expect(TokenType.STR)
+        else:
+            raise Exception(f"Expected type after ':', but got {self.current().kind}")
+        var_type = type_tok.value
+
+        self.expect(TokenType.ASSIGN)  # <-- Make sure you consume the '=' here
+        self.expect(TokenType.LBRAC)  # <-- Make sure you consume the '[' here
+
+        elements = []
+        while self.current().kind != TokenType.RBRAC:
+            expr = self.parse_expr()
+            elements.append(expr)
+
+            if self.current().kind == TokenType.COMMA:
+                self.advance()  # Skip comma if present
+
+        self.expect(TokenType.RBRAC)
+        self.expect(TokenType.SEMICOLON)
+        prgm_grps.append(name)
+
+        return GrpDeclNode(name, elements, var_type).to_dict()
