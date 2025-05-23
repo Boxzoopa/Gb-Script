@@ -83,6 +83,11 @@ class Parser:
             return BinaryOpNode(left, token.value, right).to_dict()
         # Add other infix cases here...
 
+        elif token.kind == TokenType.LBRAC:
+            index_expr = self.parse_expr()
+            self.expect(TokenType.RBRAC)
+            return IndexNode(left, index_expr).to_dict()
+
 
 
     # === Parsing Methods ===
@@ -197,12 +202,17 @@ class Parser:
         self.expect(TokenType.LBRAC)  # <-- Make sure you consume the '[' here
 
         elements = []
+        index = 0
         while self.current().kind != TokenType.RBRAC:
             expr = self.parse_expr()
-            elements.append(expr)
+            node = IndexNode(name, index, expr).to_dict()
+
+            elements.append(node)
 
             if self.current().kind == TokenType.COMMA:
                 self.advance()  # Skip comma if present
+            
+            index += 1
 
         self.expect(TokenType.RBRAC)
         self.expect(TokenType.SEMICOLON)

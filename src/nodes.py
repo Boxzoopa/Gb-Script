@@ -91,3 +91,16 @@ class GrpDeclNode:
             "values": self.values,
         }
 
+class IndexNode:
+    def __init__(self, group, index: int, value):
+        self.group = group
+        self.index = index
+        self.value = value
+
+    def to_dict(self):
+        return {
+            "type": "index",
+            "group": self.group,
+            "index": self.index,
+            "value": self.value,
+        }
