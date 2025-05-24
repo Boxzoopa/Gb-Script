@@ -30,15 +30,17 @@ class Lexer:
         self.length = len(source)
         self.pos = 0
         self.tokens = []
+        self.line = 1
 
     def tokenize(self):
         while not self.at_end():
             self.start = self.pos
             self.scan_token()
-        self.tokens.append(Token(TokenType.EOF, ""))
+        self.add_token(TokenType.EOF)
         return self.tokens
 
-    ## UTILS FUNCTIONS
+    ## UTILITIES
+
     def at_end(self):
         return self.pos >= self.length
 
@@ -51,120 +53,141 @@ class Lexer:
         if self.at_end():
             return '\0'
         return self.source[self.pos]
-    
+
+    def peek_next(self):
+        if self.pos + 1 >= self.length:
+            return '\0'
+        return self.source[self.pos + 1]
+
     def match(self, expected):
-        if self.at_end(): return False
-        if self.source[self.pos] != expected: return False
+        if self.at_end():
+            return False
+        if self.source[self.pos] != expected:
+            return False
         self.pos += 1
         return True
 
-    
-    ## TOKENIZING
+    def add_token(self, kind: TokenType, value: str = None):
+        lexeme = self.source[self.start:self.pos] if value is None else value
+        self.tokens.append(Token(kind, lexeme, self.line))
+
+    ## TOKENIZER
+
     def scan_token(self):
         c = self.advance()
 
-        if c.isspace():
+        if c in ' \r\t':
             return
-        
+        if c == '\n':
+            self.line += 1
+            return
+
         if c in ("'", '"'):
             self.lex_string(c)
             return
-        
+
         if c.isdigit():
             self.lex_number()
             return
 
-        if c.isalpha():
+        if c.isalpha() or c == "_":
             self.lex_identifier()
             return
-        
-        elif c == '+':
-            if self.match('+'):
-                self.tokens.append(Token(TokenType.P_PLUS, '++'))
-            elif self.match('='):
-                self.tokens.append(Token(TokenType.P_EQ, '+='))
-            else:
-                self.tokens.append(Token(TokenType.PLUS, '+'))
 
-        elif c == '-':
-            if self.match('-'):
-                self.tokens.append(Token(TokenType.M_MINUS, '--'))
-            elif self.match('='):
-                self.tokens.append(Token(TokenType.M_EQ, '-='))
-            else:
-                self.tokens.append(Token(TokenType.MINUS, '-'))
 
-        elif c in ("'", '"'):
-            self.lex_string(c)
+        # Single or multi-character operators
+        match c:
+            case '+':
+                if self.match('+'):
+                    self.add_token(TokenType.P_PLUS)
+                elif self.match('='):
+                    self.add_token(TokenType.P_EQ)
+                else:
+                    self.add_token(TokenType.PLUS)
 
-        elif c == "*":
-            self.tokens.append(Token(TokenType.MULT, "*"))
-        elif c == "/":
-            self.tokens.append(Token(TokenType.DIV, "/"))
-        elif c == "^":
-            self.tokens.append(Token(TokenType.POW, "/"))
+            case '-':
+                if self.match('-'):
+                    self.add_token(TokenType.M_MINUS)
+                elif self.match('='):
+                    self.add_token(TokenType.M_EQ)
+                else:
+                    self.add_token(TokenType.MINUS)
 
-        elif c == "=":
-            if self.match("="):
-                self.tokens.append(Token(TokenType.EQUALS, "=="))
-            else:
-                self.tokens.append(Token(TokenType.ASSIGN, "="))
+            case '*':
+                self.add_token(TokenType.MULT)
 
-        elif c == '!':
-            if self.match('='):
-                self.tokens.append(Token(TokenType.NOT_EQ, '!='))
-            else:
-                self.tokens.append(Token(TokenType.NOT, '!'))
+            case '/':
+                if self.match('/'):
+                    self.lex_comment()
+                    return
+                else:
+                    self.add_token(TokenType.DIV)
+                    return
 
-        elif c == ";":
-            self.tokens.append(Token(TokenType.SEMICOLON, ";"))
-        elif c == ':':
-            self.tokens.append(Token(TokenType.COLON, ':'))
-        elif c == "?":
-            self.tokens.append(Token(TokenType.QUESTION, '?'))
-        elif c == ",":
-            self.tokens.append(Token(TokenType.COMMA, ','))
 
-        elif c == '(':
-            self.tokens.append(Token(TokenType.LPAREN, '('))
-        elif c == ')':
-            self.tokens.append(Token(TokenType.RPAREN, ')'))
-        elif c == '{':
-            self.tokens.append(Token(TokenType.LCURL, '{'))
-        elif c == '}':
-            self.tokens.append(Token(TokenType.RCURL, '}'))
-        elif c == '[':
-            self.tokens.append(Token(TokenType.LBRAC, '['))
-        elif c == ']':
-            self.tokens.append(Token(TokenType.RBRAC, ']'))
-        
-        
-        
+            case '^':
+                self.add_token(TokenType.POW)
 
-        else:
-            raise Exception(f"Unexpected character: '{c}'")
-            
+            case '=':
+                if self.match('='):
+                    self.add_token(TokenType.EQUALS)
+                else:
+                    self.add_token(TokenType.ASSIGN)
+
+            case '!':
+                if self.match('='):
+                    self.add_token(TokenType.NOT_EQ)
+                else:
+                    self.add_token(TokenType.NOT)
+
+            case ';': self.add_token(TokenType.SEMICOLON)
+            case ':': self.add_token(TokenType.COLON)
+            case '?': self.add_token(TokenType.QUESTION)
+            case ',': self.add_token(TokenType.COMMA)
+            case '(': self.add_token(TokenType.LPAREN)
+            case ')': self.add_token(TokenType.RPAREN)
+            case '{': self.add_token(TokenType.LCURL)
+            case '}': self.add_token(TokenType.RCURL)
+            case '[': self.add_token(TokenType.LBRAC)
+            case ']': self.add_token(TokenType.RBRAC)
+
+            case _:
+                raise Exception(f"[Line {self.line}] Unexpected character: '{c}'")
+
     def lex_number(self):
-        start = self.pos - 1
         while self.peek().isdigit():
             self.advance()
-        value = self.source[start:self.pos]
-        self.tokens.append(Token(TokenType.NUMBER, value))
+        if self.peek() == '.' and self.peek_next().isdigit():
+            self.advance()  # consume '.'
+            while self.peek().isdigit():
+                self.advance()
+        value = self.source[self.start:self.pos]
+        self.add_token(TokenType.NUMBER, value)
 
     def lex_identifier(self):
-        start = self.pos - 1
         while self.peek().isalnum() or self.peek() == "_":
             self.advance()
-        text = self.source[start:self.pos]
+        text = self.source[self.start:self.pos]
         token_type = keywords.get(text, TokenType.IDENT)
-        self.tokens.append(Token(token_type, text))    
-    
+        self.add_token(token_type, text)
+
     def lex_string(self, quote_type: str):
-        start = self.pos
         while not self.at_end() and self.peek() != quote_type:
+            if self.peek() == '\n':
+                self.line += 1
             self.advance()
         if self.at_end():
-            raise Exception("Unterminated string literal.")
-        self.advance()  # Consume closing "
-        value = self.source[start:self.pos - 1]
-        self.tokens.append(Token(TokenType.STRING, value))
+            raise Exception(f"[Line {self.line}] Unterminated string literal.")
+        self.advance()  # consume closing quote
+        value = self.source[self.start + 1:self.pos - 1]
+        self.add_token(TokenType.STRING, value)
+
+
+
+    def lex_comment(self):
+        self.advance()  # consume first '/'
+        self.advance()  # consume second '/'
+        while not self.at_end() and self.peek() != '\n':
+            self.advance()
+        return
+

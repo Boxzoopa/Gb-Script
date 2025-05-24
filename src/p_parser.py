@@ -1,6 +1,7 @@
 # parser.py
 from src.tokens import TokenType, Token
 from src.nodes import *
+from src.errors import ParseError
 
 PRECEDENCE = {
     TokenType.SEMICOLON: -1,
@@ -16,6 +17,8 @@ PRECEDENCE = {
     TokenType.DIV: 20,
     TokenType.LPAREN: 0,
     TokenType.RPAREN: 0,
+    TokenType.LBRAC: 0,
+    TokenType.RBRAC: 0,
 }
 
 
@@ -23,8 +26,9 @@ prgm_vars = []
 prgm_grps = []
 
 class Parser:
-    def __init__(self, tokens):
+    def __init__(self, tokens, source_lines):
         self.tokens = tokens
+        self.src_lines = source_lines
         self.pos = 0
 
     # === Utility Methods ===
@@ -41,7 +45,7 @@ class Parser:
 
     def expect(self, kind):
         if self.current().kind != kind:
-            raise Exception(f"Expected token {kind}, but got {self.current().kind}")
+            raise ParseError(f"Expected token {kind}, but got {self.current().kind}", self.current(), self.src_lines)
         return self.advance()
 
     def peek(self, offset=1):
@@ -66,6 +70,8 @@ class Parser:
         
         elif token.kind == TokenType.STRING:
             return StringNode(token.value).to_dict()
+    
+
 
 
     def led(self, token, left):
@@ -84,7 +90,7 @@ class Parser:
         # Add other infix cases here...
 
         elif token.kind == TokenType.LBRAC:
-            index_expr = self.parse_expr()
+            index_expr = self.parse_expr(PRECEDENCE[TokenType.LBRAC]- 1)
             self.expect(TokenType.RBRAC)
             return IndexNode(left, index_expr).to_dict()
 
@@ -106,7 +112,7 @@ class Parser:
             name = self.peek(1)
             if name.kind == TokenType.IDENT:
                 if name.value in prgm_vars:
-                    raise Exception(f"Variable '{name.value}' already declared.")
+                    raise ParseError(f"Variable '{name.value}' already declared.")
             if tok.kind == TokenType.VAR:
                 return self.parse_var_decl(is_const=False)
             elif tok.kind == TokenType.CONST:
@@ -117,7 +123,7 @@ class Parser:
             name = self.peek(1)
             if name.kind == TokenType.IDENT:
                 if name.value in prgm_grps:
-                    raise Exception(f"Group '{name.value}' already declared.")
+                    raise ParseError(f"Group '{name.value}' already declared.", self.current(), self.src_lines)
                 
                 return self.parse_group_decl()
             
@@ -155,13 +161,13 @@ class Parser:
             elif self.current().kind == TokenType.STR:
                 type_tok = self.expect(TokenType.STR)
             else:
-                raise Exception(f"Expected type after ':', but got {self.current().kind}")
+                raise ParseError(f"Expected type after ':', but got {self.current().kind}", self.current(), self.src_lines)
             var_type = type_tok.value
         
         init = None
         if is_const:
             if self.current().kind != TokenType.ASSIGN:
-                raise Exception(f"Constant '{name}' must be initialized at declaration.")
+                raise ParseError(f"Constant '{name}' must be initialized at declaration.", self.current(), self.src_lines)
 
 
         if self.current().kind == TokenType.ASSIGN:
@@ -170,11 +176,9 @@ class Parser:
 
             if init is not None and var_type is not None:
                 if init['type'] == TokenType.NUMBER and var_type != "int":
-                    raise Exception(f"Type mismatch: '{name}' expected {var_type}, but got {init['type']}")
+                    raise ParseError(f"Type mismatch: '{name}' expected {var_type}, but got {init['type']}", self.current(), self.src_lines)
                 elif init['type'] == TokenType.STRING and var_type != "str":
-                    raise Exception(f"Type mismatch: '{name}' expected {var_type}, but got {init['type']}")
-
-
+                    raise ParseError(f"Type mismatch: '{name}' expected {var_type}, but got {init['type']}", self.current(), self.src_lines)
 
         self.expect(TokenType.SEMICOLON)
         prgm_vars.append(name)
@@ -195,7 +199,7 @@ class Parser:
         elif self.current().kind == TokenType.STR:
             type_tok = self.expect(TokenType.STR)
         else:
-            raise Exception(f"Expected type after ':', but got {self.current().kind}")
+            raise ParseError(f"Expected type after ':', but got {self.current().kind}", self.current(), self.src_lines)
         var_type = type_tok.value
 
         self.expect(TokenType.ASSIGN)  # <-- Make sure you consume the '=' here

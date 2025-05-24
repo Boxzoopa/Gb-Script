@@ -66,15 +66,18 @@ class TokenType:
 
 
 class Token:
-    def __init__(self, kind: TokenType, value: str):
+    def __init__(self, kind: TokenType, value: str, line = 0, column = 0):
         self.kind = kind
         self.value = value
 
+        self.line = line
+        self.column = column
+
     def __repr__(self):
         if match_toks(self, [TokenType.IDENT, TokenType.NUMBER, TokenType.STRING]):
-            return f"Token({self.kind}, {self.value})"
+            return f"Token({self.kind}, {self.value})" #, ln={self.line}, col={self.column})"
         else:
-            return f"Token({self.kind})"
+            return f"Token({self.kind})" #, ln={self.line}, col={self.column})"
 
 
 def match_toks(token: Token, expected_tokens: list[TokenType]) -> bool:

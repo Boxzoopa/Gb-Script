@@ -12,7 +12,7 @@ def run_file(input_file, output_file=None):
         toks = lexer.tokenize()
         for tok in toks: 
             print(tok)
-        parser = Parser(toks)
+        parser = Parser(toks, source)
         ast = parser.parse()
         print(ast)
 
