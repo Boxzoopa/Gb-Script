@@ -1,0 +1,2 @@
+// 01.gbscript, A basic Binary Expression
+42.5 + 5 * 4;

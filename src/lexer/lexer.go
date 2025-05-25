@@ -1,3 +1,4 @@
+// lexer.go
 package lexer
 
 import (
@@ -75,8 +76,16 @@ func newLexer(srcCode string) *lexer {
 		tokens:   make([]Token, 0),
 		patterns: []regexPattern{
 			// define all the patterns
+
+			// Unique Patterns
+			{regexp.MustCompile(`\s+`), skipHandler}, // skip whitespace
+			{regexp.MustCompile(`[a-zA-Z_][a-zA-Z0-9_]*`), symbolHandler},
+			{regexp.MustCompile(`\/\/.*`), commentHandler},
 			{regexp.MustCompile(`[0-9]+(\.[0-9]+)?`), numberHandler},
-			{regexp.MustCompile(`\s`), skipHandler}, // skip whitespace
+			{regexp.MustCompile(`\"[^"]*"`), stringHandler},
+			{regexp.MustCompile(`\'[^']*'`), stringHandler},
+
+			// Standardised Patterns
 			{regexp.MustCompile(`\(`), defaultHandler(L_PAREN, "(")},
 			{regexp.MustCompile(`\)`), defaultHandler(R_PAREN, ")")},
 			{regexp.MustCompile(`\{`), defaultHandler(L_CURLY, "{")},
@@ -108,7 +117,6 @@ func newLexer(srcCode string) *lexer {
 			{regexp.MustCompile(`/`), defaultHandler(SLASH, "/")},
 			{regexp.MustCompile(`\*`), defaultHandler(STAR, "*")},
 			{regexp.MustCompile(`%`), defaultHandler(PERCENT, "%")},
-	
 		},
 	}
 }
@@ -137,3 +145,32 @@ func skipHandler(lex * lexer, regex *regexp.Regexp) {
 
 }
 
+func stringHandler(lex * lexer, regex *regexp.Regexp) {
+	match := regex.FindStringIndex(lex.remainder())
+	strLiteral := lex.remainder()[match[0] + 1 :match[1] - 1]
+
+	lex.add(newToken(STRING, strLiteral))
+	lex.adv(len(strLiteral) + 2)
+
+}
+
+func symbolHandler(lex * lexer, regex *regexp.Regexp) {
+	value := regex.FindString(lex.remainder())
+
+	if kind, exsists := reserved_lu[value]; exsists {
+		lex.add(newToken(kind, value))
+	} else {
+		lex.add(newToken(IDENT, value))
+	}
+
+	lex.adv(len(value))
+
+}
+
+func commentHandler(lex *lexer, regex *regexp.Regexp) {
+	match := regex.FindStringIndex(lex.remainder())
+	if match != nil {
+		// Advance past the entire comment.
+		lex.adv(match[1])
+	}
+}

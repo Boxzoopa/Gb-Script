@@ -1,5 +1,5 @@
+// tokens.go
 package lexer
-
 
 import "fmt"
 
@@ -19,9 +19,9 @@ const (
 	L_CURLY
 	R_CURLY
 
-	ASSIGN // =
+	ASSIGN     // =
 	ASSIGNMENT // ==
-	NOT // !
+	NOT        // !
 	NOT_EQ
 
 	LESS
@@ -44,7 +44,7 @@ const (
 	STAR
 	SLASH
 	PERCENT // %
-	POW // ^
+	POW     // ^
 
 	P_PLUS // ++
 	M_DASH
@@ -53,13 +53,12 @@ const (
 	STAR_EQ
 	SLASH_EQ
 
-
 	// reserved keywords
 	VAR
 	CONST
 	OBJ
 	GRP
-	FUN
+	FUNC
 	IMPORT
 	RETURN
 	IF
@@ -70,19 +69,36 @@ const (
 	IN
 	TRUE
 	FALSE
-	NEW
 	FROM
-	FUNC
 )
 
-type Token struct {
-	kind TokenKind
-	value string
+var reserved_lu map[string]TokenKind = map[string]TokenKind{
+	"var":    VAR,
+	"const":  CONST,
+	"obj":    OBJ,
+	"grp":    GRP,
+	"func":   FUNC,
+	"import": IMPORT,
+	"return": RETURN,
+	"if":     IF,
+	"else":   ELSE,
+	"for":    FOR,
+	"while":  WHILE,
+	"typeof": TYPEOF,
+	"in":     IN,
+	"true":   TRUE,
+	"false":  FALSE,
+	"from":   FROM,
 }
 
-func (token Token) matches (expectedTokens ...TokenKind) bool {
+type Token struct {
+	Kind  TokenKind
+	Value string
+}
+
+func (token Token) matches(expectedTokens ...TokenKind) bool {
 	for _, expected := range expectedTokens {
-		if expected == token.kind {
+		if expected == token.Kind {
 			return true
 		}
 	}
@@ -91,21 +107,20 @@ func (token Token) matches (expectedTokens ...TokenKind) bool {
 
 func (token Token) Debug() {
 	if token.matches(IDENT, NUMBER, STRING) {
-		fmt.Printf("Token: %s (%s)\n", tokenKindString(token.kind), token.value)
+		fmt.Printf("Token: %s (%s)\n", TokenKindString(token.Kind), token.Value)
 	} else {
-		fmt.Printf("Token: %s ()\n", tokenKindString(token.kind))
+		fmt.Printf("Token: %s ()\n", TokenKindString(token.Kind))
 	}
 }
 
 func newToken(kind TokenKind, value string) Token {
-	return Token {
-		kind:  kind,
-		value: value,
+	return Token{
+		Kind:  kind,
+		Value: value,
 	}
 }
 
-
-func tokenKindString(kind TokenKind) string {
+func TokenKindString(kind TokenKind) string {
 	switch kind {
 	case EOF:
 		return "eof"
@@ -191,8 +206,6 @@ func tokenKindString(kind TokenKind) string {
 		return "const"
 	case OBJ:
 		return "object"
-	case NEW:	
-		return "new"
 	case IMPORT:
 		return "import"
 	case FROM:
@@ -209,6 +222,8 @@ func tokenKindString(kind TokenKind) string {
 		return "while"
 	case IN:
 		return "in"
+	case GRP:
+		return "group"
 	default:
 		return fmt.Sprintf("unknown(%d)", kind)
 	}

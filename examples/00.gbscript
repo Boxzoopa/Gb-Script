@@ -1,6 +1,6 @@
-// syntax example, semi-basic
+// 00.gbcript syntax example
 
-var msg : str= "Hello world"; // varible ttypres are static or dynamic
+var msg : str = "Hello world"; // variable types are static or dynamic
 
 const number: int = 1;
 
@@ -15,17 +15,17 @@ msg = "bye";
 grp nums : int = [1, 2, 3, 4, 5];
 grp empty : bool = [];
 
-// grp words = ["hi", "a"]; this is =rong. for groups(arrays), they have to have a type staically defined
+// grp words = ["hi", "a"]; this is wrong. for groups(arrays), they have to have a type staically defined
 
 obj dog {
   var age: int;
-  var woof_type;
+  var woof_type: int;
 };
 
 func createDog(int age, int wt) {
   var d = dog();
 
-  d.age = agel
+  d.age = age;
   d.woof_type = wt;
 
   return d;
@@ -35,9 +35,9 @@ func createDog(int age, int wt) {
 func woof(int wt) {
   while (int x; x != 5) {
     if (wt == 0) {
-      print("woof 0")l
-    } elif (wt == 1) {
-      print("woof 1")
+      print("woof 0");
+    } else if (wt == 1) {
+      print("woof 1");
     }
   }
   x++;
