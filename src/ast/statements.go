@@ -14,18 +14,18 @@ type ExpressionStmt struct {
 func (n ExpressionStmt) stmt() {}
 
 type VarDeclStmt struct {
-	Name        string
-	IsConst     bool
-	AssignedVal Expr
-	// NOTE: Add ExplicitType
+	Name         string
+	IsConst      bool
+	AssignedVal  Expr
+	ExplicitType Type
 }
 
 func (n VarDeclStmt) stmt() {}
 
 type GrpDeclStmt struct {
 	Name         string
-	AssignedVals Expr//[]
-	// NOTE: Add ExplicitType
+	AssignedVals Expr
+	ElementType  Type
 }
 
 func (n GrpDeclStmt) stmt() {}

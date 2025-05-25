@@ -12,10 +12,8 @@ var num3 = 5;
 flag = false;
 msg = "bye";
 
-grp nums : int = [1, 2, 3, 4, 5];
-grp empty : bool = [];
-
-// grp words = ["hi", "a"]; this is wrong. for groups(arrays), they have to have a type staically defined
+var nums : grp[int] = [1, 2, 3, 4, 5];
+var empty : grp[bool] = [];
 
 obj dog {
   var age: int;

@@ -3,5 +3,3 @@ var foo = 45.5;
 var bar = foo * 10;
 
 const isGreater = foo > 10;
-
-grp nums = 1;

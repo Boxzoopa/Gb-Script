@@ -28,6 +28,7 @@ func Parse(tokens []lexer.Token) ast.BlockStmt {
 
 func newParser(tokens []lexer.Token) *parser {
 	makeTokenLookups()
+	makeTokenTypeLookups()
 	return &parser{
 		tokens: tokens, pos: 0,
 	}
