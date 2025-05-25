@@ -1,8 +1,0 @@
-var a = 1;
-var b: int = 2;
-var c;
-const d = 3;
-
-var msg = "hi";
-var msg_2 : str = "hello world";
-var msg_3 : str = "1";

@@ -1,3 +1,0 @@
-// groups.gbscript
-grp nums: int = [1, 2, 3];
-grp mags: str = ["hi", "bye"];

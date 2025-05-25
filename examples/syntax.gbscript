@@ -1,45 +1,48 @@
-//Ok, btw the language syntax is akin to this, albiert modifcations to syntax and general difereneces, classes(obj) are likely to look and act more like structs in the future, as I plan on making an evnutal transpiler to c
+// syntax example, semi-basic
 
-import("fs.gbscript");
-import("path.gbscript");
-import("time.gbscript");
+var msg : str= "Hello world"; // varible ttypres are static or dynamic
 
-obj DirectoryReader {
-  var directoryPath: str;
+const number: int = 1;
 
-  func mount(directoryPath: str) {
-    this.directoryPath = directoryPath;
-  }
+var flag = true;
+var num2 : int = 56;
 
-  func readRecentFiles() {
-    var allFiles: []str = fs.readDir(this.directoryPath);
-    var recentFiles: []str = [];
+var num3 = 5;
 
-    for file in allFiles {
-      var fullPath: str = path.join(this.directoryPath, file);
-      var fileInfo: FileInfo = fs.stat(fullPath);
-      if this.isFileRecent(fileInfo.creationTime) {
-        recentFiles.push(fullPath);
-      }
-    }
+flag = false;
+msg = "bye";
 
-    for file in recentFiles {
-      print(file, fs.stat(file).creationTime);
-    }
-  }
+grp nums : int = [1, 2, 3, 4, 5];
+grp empty : bool = [];
 
-  func isFileRecent(creationTime: Time): bool {
-    var twentyFourHoursAgo: Time = time.now() - time.hours(24);
-    creationTime > twentyFourHoursAgo;
-  }
+// grp words = ["hi", "a"]; this is =rong. for groups(arrays), they have to have a type staically defined
+
+obj dog {
+  var age: int;
+  var woof_type;
+};
+
+func createDog(int age, int wt) {
+  var d = dog();
+
+  d.age = agel
+  d.woof_type = wt;
+
+  return d;
+
 }
 
-func main() {
-  const directory: str = "/path/to/directory";
-  const reader = new DirectoryReader();
-  reader.mount(directory);
-  reader.readRecentFiles();
+func woof(int wt) {
+  while (int x; x != 5) {
+    if (wt == 0) {
+      print("woof 0")l
+    } elif (wt == 1) {
+      print("woof 1")
+    }
+  }
+  x++;
 }
 
-main();
+var petty = createDog(10, 0);
 
+woof(petty.woof_type);

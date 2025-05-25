@@ -1,0 +1,70 @@
+program ::= (declaration | statement)*
+
+var_decl ::= "var" identifier [ ":" type ] "=" expression ";"
+const_decl ::= "const" identifier ":" type "=" expression ";"
+
+grp_decl ::= "grp" identifier ":" type "=" "[" [expression ("," expression)*] "]" ";"
+
+obj_decl ::= "obj" identifier "{" (var_decl)* "}" ";"
+
+
+func_decl ::= "func" identifier "(" [param_list] ")" block
+param_list ::= param ("," param)*
+param ::= type identifier
+
+
+type ::= "int" | "str" | "bool" | "float" | identifier
+
+expr_stmt ::= expression ";"
+assign_stmt ::= (identifier | member_access | array_access) "=" expression ";"
+
+
+if_stmt ::= "if" "(" expression ")" block [elif_clause]* [else_clause]
+elif_clause ::= "elif" "(" expression ")" block
+else_clause ::= "else" block
+
+while_stmt ::= "while" "(" [init_expr ";"] condition [ ";" post_expr ] ")" block
+while_stmt ::= "while" "(" [variable_declaration] expression ")" block
+
+return_stmt ::= "return" [expression] ";"
+
+print_stmt ::= "print" "(" expression ")" ";"
+
+primary ::= integer_literal
+          | float_literal
+          | string_literal
+          | boolean_literal
+          | identifier
+          | function_call
+          | array_literal
+          | object_literal
+          | "(" expression ")"
+
+
+array_literal ::= "[" [expression ("," expression)*] "]"
+
+
+object_literal ::= identifier "(" ")"
+
+
+function_call ::= identifier "(" [expression ("," expression)*] ")"
+
+
+member_access ::= expression "." identifier
+array_access ::= expression "[" expression "]"
+
+
+unary ::= ("+" | "-" | "!") unary | primary
+
+expression ::= equality
+
+equality ::= comparison (("==" | "!=") comparison)*
+
+comparison ::= addition ((">" | ">=" | "<" | "<=") addition)*
+
+addition ::= multiplication (("+" | "-") multiplication)*
+
+multiplication ::= unary (("*" | "/" | "%") unary)*
+
+block ::= "{" statement* "}"
+
