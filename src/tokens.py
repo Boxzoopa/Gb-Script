@@ -1,7 +1,7 @@
 # tokens.py
 from typing import Type
 
-class TokenKind:
+class TokenType:
      # Identifiers & literals
     IDENT = "identifier"
     NUMBER = "number"
@@ -62,22 +62,22 @@ class TokenKind:
 
 
 class Token:
-    def __init__(self, kind : TokenKind, value : str, ln : int = 0, col : int = 0):
-        self.kind = kind
+    def __init__(self, type : TokenType, value : str, ln : int = 0, col : int = 0):
+        self.type = type
         self.value = value
-        self.line = ln
+        self.ln = ln
         self.col = col
 
     def __repr__(self):
-        if match_toks(self, [TokenKind.IDENT, TokenKind.NUMBER, TokenKind.STRING]):
-            return f"{self.kind}({self.value})" #, ln={self.line}, col={self.column})"
+        if match_toks(self, [TokenType.IDENT, TokenType.NUMBER, TokenType.STRING]):
+            return f"{self.type}({self.value})" #, ln={self.line}, col={self.column})"
         else:
-            return f"{self.kind}()" #, ln={self.line}, col={self.column})"
+            return f"{self.type}()" #, ln={self.line}, col={self.column})"
 
 
-def match_toks(token: Token, expected_tokens: list[TokenKind]) -> bool:
+def match_toks(token: Token, expected_tokens: list[TokenType]) -> bool:
     for expected in expected_tokens:
-        if expected == token.kind:
+        if expected == token.type:
             return True
         
     return False

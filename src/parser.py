@@ -1,146 +1,92 @@
 from src.nodes import *
-from src.tokens import Token, TokenKind
-from enum import IntEnum, auto
-from typing import Callable, Dict
+from src.tokens import Token, TokenType
 
-# ----------------------------
-# Binding Power Precedence
-# ----------------------------
-class BindingPower(IntEnum):
-    DEFAULT_BP = 0
-    COMMA = auto()
-    ASSIGNMENT = auto()
-    LOGICAL = auto()
-    RELATIONAL = auto()
-    ADDITIVE = auto()
-    MULTIPLICATIVE = auto()
-    UNARY = auto()
-    CALL = auto()
-    MEMBER = auto()
-    PRIMARY = auto()
-
-# ----------------------------
-# NUD / LED Registries
-# ----------------------------
-nud_table: Dict[TokenKind, Callable] = {}
-led_table: Dict[TokenKind, tuple[int, Callable]] = {}
-
-def nud(kind: TokenKind, func: Callable):
-    nud_table[kind] = func
-
-def led(kind: TokenKind, bp: int, func: Callable):
-    led_table[kind] = (bp, func)
-
-# ----------------------------
-# Parser Class
-# ----------------------------
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
-        self.pos = 0
+        self.current = 0
         self.errors = []
-        self.create_lookups()
 
-    def current(self):
-        if self.pos >= len(self.tokens):
-            return Token(TokenKind.EOF, None)
-        return self.tokens[self.pos]
 
-    def advance(self):
-        tok = self.current()
-        if self.pos < len(self.tokens):
-            self.pos += 1
-        return tok
+    def not_at_end(self):
+        return self.tokens[0].type != TokenType.EOF
+    
+    def at(self): # get current token
+        return self.tokens[0]
 
-    def hasTokens(self) -> bool:
-        return self.pos < len(self.tokens) and self.current().kind != TokenKind.EOF
-
-    def expect(self, kind):
-        if self.current().kind != kind:
-            self.errors.append(f"Expected {kind}, got {self.current().kind}")
-            return False
-        self.advance()
-        return True
-
-    def parse(self):
-        stmts = []
-        while self.hasTokens():
-            # Skip semicolons between statements
-            while self.current().kind == TokenKind.SEMICOLON:
-                self.advance()
-                if self.current().kind == TokenKind.EOF:
-                    break
-
-            if self.current().kind == TokenKind.EOF:
-                break
-
-            stmt = self.parse_stmt()
-            if stmt:
-                stmts.append(stmt)
-
-        return ProgramStmt(stmts)
-
-    def parse_stmt(self):
-        tok = self.current()
-        if tok.kind in nud_table:
-            expr = self.parse_expr()
-            self.expect(TokenKind.SEMICOLON)
-            return ExpressionStmt(expr)
+    def adv(self): # consume current token
+        prev = self.tokens.pop(0)
+        return prev
+    
+    def expect(self, expected_type):
+        if self.at().type == expected_type:
+            return self.adv()
         else:
-            self.errors.append(f"Unexpected token {tok.kind} at start of statement")
-            self.advance()
+            self.errors.append(f"Expected token {expected_type} at line {self.at().ln}, col {self.at().col}, but found {self.at().value}")
             return None
 
-    def parse_expr(self, bp=0):
-        if self.current().kind == TokenKind.EOF:
-            self.errors.append("Unexpected EOF while parsing expression")
-            return NumberExpr(0)
 
-        tok = self.advance()
-        if tok.kind not in nud_table:
-            self.errors.append(f"No nud for {tok.kind}")
-            return NumberExpr(0)
+    def parse(self):
+        body = []
 
-        left = nud_table[tok.kind](self, tok)
+        while self.not_at_end():
+            stmt = self.parse_stmt()
+            if stmt:
+                body.append(stmt)
 
-        while True:
-            op = self.current()
-            entry = led_table.get(op.kind)
-            if not entry or entry[0] <= bp:
-                break
-            self.advance()
-            led_bp, led_fn = entry
-            left = led_fn(self, left, op)
+
+        return Program(body)
+    
+    def parse_stmt(self):
+        # TODO: Force Semicolon at the end of each statement
+        expr = self.parse_expr()
+
+        if self.at().type == TokenType.SEMICOLON:
+            self.adv()
+        else:
+            self.errors.append(f"Expected ';' at line {self.at().ln}, col {self.at().col}, but found {self.at().value}")
+            
+        return expr
+    
+    def parse_expr(self):
+        return self.parse_additive()
+    
+
+    def parse_additive(self):
+        left = self.parse_multiplicitave()
+
+        while self.at().type in (TokenType.PLUS, TokenType.DASH):
+            op = self.adv().value
+            right = self.parse_multiplicitave()
+            left = BinaryExpr(left, right, op)
+
+        return left
+    def parse_multiplicitave(self):
+        left = self.parse_primary()
+
+        while self.at().type in (TokenType.STAR, TokenType.SLASH, TokenType.PERCENT):
+            op = self.adv().value
+            right = self.parse_primary()
+            left = BinaryExpr(left, right, op)
 
         return left
 
-    def create_lookups(self):
-        # NUD handlers (literals, identifiers)
-        nud(TokenKind.NUMBER, parse_literal)
-        nud(TokenKind.STRING, parse_literal)
-        nud(TokenKind.IDENT, parse_literal)
+    def parse_primary(self):
+        tk = self.at().type
 
-        # LED handlers (infix binary ops)
-        led(TokenKind.PLUS, BindingPower.ADDITIVE, parse_binary_expr)
-        led(TokenKind.STAR, BindingPower.MULTIPLICATIVE, parse_binary_expr)
-        led(TokenKind.EQUALS, BindingPower.RELATIONAL, parse_binary_expr)
-        led(TokenKind.LESS, BindingPower.RELATIONAL, parse_binary_expr)
+        match tk:
+            case TokenType.IDENT:
+                return Identifier(self.adv().value)
+            case TokenType.NUMBER:
+                return NumericLiteral(int(self.adv().value))
+            case TokenType.LPAREN:
+                self.adv() # consume '('
+                value = self.parse_expr()
+                self.expect(TokenType.RPAREN) # consume ')'
+                return value
+            
+            case default:
+                self.errors.append(f"Unexpected token {self.at().value} at {self.at().ln}, {self.at().col}")
+                self.adv()
+                return None
 
-# ----------------------------
-# Expression Parsers
-# ----------------------------
-def parse_literal(parser: Parser, tok: Token):
-    if tok.kind == TokenKind.NUMBER:
-        return NumberExpr(tok.value)
-    elif tok.kind == TokenKind.STRING:
-        return StringExpr(tok.value)
-    elif tok.kind == TokenKind.IDENT:
-        return SymbolExpr(tok.value)
-    else:
-        parser.errors.append(f"Unexpected token in parse_literal: {tok}")
-        return NumberExpr(0)
-
-def parse_binary_expr(parser: Parser, left: Expr, op: Token):
-    bp, _ = led_table[op.kind]
-    right = parser.parse_expr(bp)
-    return BinaryExpr(left, right, op)

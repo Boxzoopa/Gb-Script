@@ -3,75 +3,31 @@ from typing import List
 
 # Base Node Classes
 class Stmt:
-    def __init__(self):
-        pass
+    def __init__(self, type):
+        self.type = type
 
-class Expr:
-    def __init__(self):
-        pass
+    def to_dict(self):
+        return {
+            "type": self.type
+        }
 
-# Statements
-class ProgramStmt(Stmt):
+class Program(Stmt):
     def __init__(self, body=None):
-        super().__init__()
+        super().__init__(type="Program")
         self.body : List[Stmt] = body if body is not None else []
 
     def to_dict(self):
         return {
-            "type": "ProgramStmt",
+            "type": "Program",
             "body": [stmt.to_dict() for stmt in self.body]
         }
 
-    
-class ExpressionStmt(Stmt):
-    def __init__(self, body=None):
-        super().__init__()
-        self.expression : Expr = body if body is not None else None
 
-    def to_dict(self):
-        return {
-            "type": "ExpressionStmt",
-            "expression": self.expression.to_dict()
-        }
+class Expr(Stmt):
+    def __init__(self):
+        pass
 
 
-# Expressions
-## Literal Nodes
-class NumberExpr(Expr):
-    def __init__(self, value):
-        super().__init__()
-        self.value : float = value
-
-    def to_dict(self):
-        return {
-            "type": "NumberExpr",
-            "value": self.value
-        }
-
-
-class StringExpr(Expr):
-    def __init__(self, value):
-        super().__init__()
-        self.value : str = value
-
-    def to_dict(self):
-        return {
-            "type": "StringExpr",
-            "value": self.value
-        }
-
-class SymbolExpr(Expr):
-    def __init__(self, value):
-        super().__init__()
-        self.value : str = value
-
-    def to_dict(self):
-        return {
-            "type": "SymbolExpr",
-            "value": self.value
-        }
-
-## Complex Nodes
 class BinaryExpr(Expr):
     def __init__(self, left, right, op):
         super().__init__()
@@ -84,9 +40,28 @@ class BinaryExpr(Expr):
             "type": "BinaryExpr",
             "left": self.left.to_dict(),
             "right": self.right.to_dict(),
-            "operator": self.op.kind  # or str(self.op)
+            "operator": self.op  # or str(self.op)
+        }
+
+class Identifier(Expr):
+    def __init__(self, value):
+        super().__init__()
+        self.value : str = value
+
+    def to_dict(self):
+        return {
+            "type": "Identifier",
+            "value": self.value
         }
     
 
-    
+class NumericLiteral(Expr):
+    def __init__(self, value):
+        super().__init__()
+        self.value : int = value
 
+    def to_dict(self):
+        return {
+            "type": "NumericLiteral",
+            "value": self.value
+        }

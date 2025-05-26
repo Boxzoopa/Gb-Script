@@ -1,130 +1,179 @@
 # lexer.py
-import re
-from typing import Callable
-from src.tokens import Token, TokenKind
+from src.tokens import Token, TokenType
 
-TokenHandler = Callable[[object, re.Match], None]
+KEYWORDS = {
+    "var": TokenType.VAR,
+    "const": TokenType.CONST,
+    "obj": TokenType.OBJ,
+    "grp": TokenType.GRP,
+    "func": TokenType.FUNC,
+    "if": TokenType.IF,
+    "else": TokenType.ELSE,
+    "while": TokenType.WHILE,
+    "for": TokenType.FOR,
+    "in": TokenType.IN,
+    "new": TokenType.NEW,
+    "import": TokenType.IMPORT,
+    "from": TokenType.FROM,
+}
 
+WHITESPACE = {' ', '\t'}
+
+SINGLE_CHAR_TOKENS = {
+    "(": TokenType.LPAREN,
+    ")": TokenType.RPAREN,
+    "{": TokenType.LCURL,
+    "}": TokenType.RCURL,
+    "[": TokenType.LBRAC,
+    "]": TokenType.RBRAC,
+    ";": TokenType.SEMICOLON,
+    ":": TokenType.COLON,
+    ",": TokenType.COMMA,
+    ".": TokenType.DOT,
+    "*": TokenType.STAR,
+    "/": TokenType.SLASH,
+}
 
 class Lexer:
-    def __init__(self, source: str):
-        self.source = source
-        self.pos = 0
+    def __init__(self):
         self.tokens = []
         self.errors = []
-        self.patterns: list[tuple[re.Pattern, TokenHandler]] = []
+        self.ln = 1
+        self.col = 1
+        self.pos = 1
 
-        self._init_patterns()
+    def add_token(self, kind: TokenType, value: str = ""):
+        self.tokens.append(Token(kind, value, self.ln, self.col))
+        self.col += len(value)
 
-    def advance(self, n: int):
-        self.pos += n
+    def peek(self, source: str, i: int, offset: int = 1):
+        pos = i + offset
+        if pos < len(source):
+            return source[pos]
+        return None
 
-    def add(self, kind: str, value: str):
-        self.tokens.append(Token(kind, value))
+    def lex_string(self, source: str, i: int):
+        start_line, start_col = self.ln, self.col
+        i += 1  # skip opening quote
+        self.col += 1
+        start = i
+        length = len(source)
+        while i < length and source[i] != '"':
+            if source[i] == '\n':
+                self.ln += 1
+                self.col = 1
+                i += 1
+            else:
+                i += 1
+                self.col += 1
+        val = source[start:i]
+        if i < length:
+            i += 1  # skip closing quote
+            self.col += 1
+            self.add_token(TokenType.STRING, val)
+        else:
+            self.errors.append(f"Unterminated string at line {start_line} col {start_col}")
+        return i
 
-    def remainder(self):
-        return self.source[self.pos:]
+    def lex_number(self, source: str, i: int):
+        start = i
+        length = len(source)
+        while i < length and source[i].isdigit():
+            i += 1
+            self.col += 1
+        val = source[start:i]
+        self.add_token(TokenType.NUMBER, val)
+        return i
 
-    def at_eof(self):
-        return self.pos >= len(self.source)
+    def lex_identifier(self, source: str, i: int):
+        start = i
+        length = len(source)
+        while i < length and (source[i].isalnum() or source[i] == '_'):
+            i += 1
+            self.col += 1
+        val = source[start:i]
+        kind = KEYWORDS.get(val, TokenType.IDENT)
+        self.add_token(kind, val)
+        return i
 
-    def tokenize(self):
-        while not self.at_eof():
-            matched = False
+    def tokenize(self, source: str):
+        i = 0
+        length = len(source)
 
-            for pattern, handler in self.patterns:
-                match = pattern.match(self.remainder())
-                if match:
-                    handler(self, match)
-                    matched = True
-                    break
+        while i < length:
+            ch = source[i]
 
-            if not matched:
-                snippet = self.remainder()[:20].replace('\n', '\\n')
-                self.errors.append(f"unrecognized token near '{snippet}'")
+            # Whitespace
+            if ch in WHITESPACE:
+                self.col += 1
+                i += 1
+                continue
+            elif ch == '\n':
+                self.ln += 1
+                self.col = 1
+                i += 1
+                continue
 
-        self.add(TokenKind.EOF, "EOF")
+            # Comments
+            if ch == '/' and self.peek(source, i) == '/':
+                i += 2
+                self.col += 2
+                while i < length and source[i] != '\n':
+                    i += 1
+                    self.col += 1
+                continue
+
+            # Single-char tokens
+            if ch in SINGLE_CHAR_TOKENS:
+                self.add_token(SINGLE_CHAR_TOKENS[ch], ch)
+                i += 1
+                continue
+
+            # Two-char or one-char operators
+            def match_two_char(op1, op2, token_two, token_one):
+                if ch == op1:
+                    if self.peek(source, i) == op2:
+                        self.add_token(token_two, op1 + op2)
+                        return 2
+                    else:
+                        self.add_token(token_one, op1)
+                        return 1
+                return 0
+
+            matched = (
+                match_two_char('=', '=', TokenType.EQUALS, TokenType.ASSIGNMENT) or
+                match_two_char('+', '+', TokenType.P_PLUS, TokenType.PLUS) or
+                match_two_char('+', '=', TokenType.PLUS_EQ, TokenType.PLUS) or
+                match_two_char('-', '-', TokenType.M_MINUS, TokenType.DASH) or
+                match_two_char('-', '=', TokenType.MINUS_EQ, TokenType.DASH) or
+                match_two_char('!', '=', TokenType.NOT_EQ, TokenType.NOT) or
+                match_two_char('<', '=', TokenType.LESS_EQ, TokenType.LESS) or
+                match_two_char('>', '=', TokenType.GREATER_EQ, TokenType.GREATER)
+            )
+            if matched:
+                i += matched
+                self.col += matched
+                continue
+
+            # String literal
+            if ch == '"':
+                i = self.lex_string(source, i)
+                continue
+
+            # Number literal
+            if ch.isdigit():
+                i = self.lex_number(source, i)
+                continue
+
+            # Identifier or keyword
+            if ch.isalpha() or ch == '_':
+                i = self.lex_identifier(source, i)
+                continue
+
+            # Unknown character
+            self.errors.append(f"Unexpected character: '{ch}' at line {self.ln}, col {self.col}")
+            i += 1
+            self.col += 1
+
+        self.add_token(TokenType.EOF, "")
         return self.tokens
-    def _init_patterns(self):
-        self.patterns = [
-            (re.compile(r'\s+'), skip_handler),
-            (re.compile(r'[a-zA-Z_][a-zA-Z0-9_]*'), symbol_handler),
-            (re.compile(r'//.*'), comment_handler),
-            (re.compile(r'[0-9]+(?:\.[0-9]+)?'), number_handler),
-            (re.compile(r'"[^"]*"'), string_handler),
-            (re.compile(r"'[^']*'"), string_handler),
-
-            # Symbols
-            (re.compile(r'\('), default_handler(TokenKind.LPAREN, "(")),
-            (re.compile(r'\)'), default_handler(TokenKind.RPAREN, ")")),
-            (re.compile(r'\{'), default_handler(TokenKind.LCURL, "{")),
-            (re.compile(r'\}'), default_handler(TokenKind.RCURL, "}")),
-            (re.compile(r'\['), default_handler(TokenKind.LBRAC, "[")),
-            (re.compile(r'\]'), default_handler(TokenKind.RBRAC, "]")),
-
-            # Operators and punctuation
-            (re.compile(r'=='), default_handler(TokenKind.EQUALS, "==")),
-            (re.compile(r'!='), default_handler(TokenKind.NOT_EQ, "!=")),
-            (re.compile(r'='), default_handler(TokenKind.ASSIGNMENT, "=")),
-            (re.compile(r'!'), default_handler(TokenKind.NOT, "!")),
-            (re.compile(r'<='), default_handler(TokenKind.LESS_EQ, "<=")),
-            (re.compile(r'<'), default_handler(TokenKind.LESS, "<")),
-            (re.compile(r'>='), default_handler(TokenKind.GREATER_EQ, ">=")),
-            (re.compile(r'>'), default_handler(TokenKind.GREATER, ">")),
-            (re.compile(r'\|\|'), default_handler(TokenKind.OR, "||")),
-            (re.compile(r'&&'), default_handler(TokenKind.AND, "&&")),
-            (re.compile(r';'), default_handler(TokenKind.SEMICOLON, ";")),
-            (re.compile(r':'), default_handler(TokenKind.COLON, ":")),
-            (re.compile(r'\?'), default_handler(TokenKind.QUESTION, "?")),
-            (re.compile(r','), default_handler(TokenKind.COMMA, ",")),
-            (re.compile(r"\."), default_handler(TokenKind.DOT, ".")),
-            (re.compile(r'\+\+'), default_handler(TokenKind.P_PLUS, "++")),
-            (re.compile(r'--'), default_handler(TokenKind.M_MINUS, "--")),
-            (re.compile(r'\+='), default_handler(TokenKind.PLUS_EQ, "+=")),
-            (re.compile(r'-='), default_handler(TokenKind.MINUS_EQ, "-=")),
-            (re.compile(r'\+'), default_handler(TokenKind.PLUS, "+")),
-            (re.compile(r'-'), default_handler(TokenKind.DASH, "-")),
-            (re.compile(r'\*'), default_handler(TokenKind.STAR, "*")),
-            (re.compile(r'/'), default_handler(TokenKind.SLASH, "/")),
-            (re.compile(r'%'), default_handler(TokenKind.PERCENT, "%")),
-        ]
-
-
-# === HANDLERS ===
-
-def default_handler(kind, value):
-    def handler(lexer, match):
-        lexer.add(kind, value)
-        lexer.advance(len(value))
-    return handler
-
-def skip_handler(lexer, match):
-    lexer.advance(len(match.group(0)))
-
-def number_handler(lexer, match):
-    value = match.group(0)
-    lexer.add(TokenKind.NUMBER, value)
-    lexer.advance(len(value))
-
-def string_handler(lexer, match):
-    full = match.group(0)
-    value = full[1:-1]
-    lexer.add(TokenKind.STRING, value)
-    lexer.advance(len(full))
-
-def symbol_handler(lexer, match):
-    value = match.group(0)
-    reserved = {
-        "var": TokenKind.VAR, "const": TokenKind.CONST, "obj": TokenKind.OBJ,
-        "grp": TokenKind.GRP, "new": TokenKind.NEW, "import": TokenKind.IMPORT,
-        "from": TokenKind.FROM, "func": TokenKind.FUNC, "if": TokenKind.IF,
-        "else": TokenKind.ELSE, "while": TokenKind.WHILE, "for": TokenKind.FOR,
-        "in": TokenKind.IN
-    }
-    kind = reserved.get(value, TokenKind.IDENT)
-    lexer.add(kind, value)
-    lexer.advance(len(value))
-
-def comment_handler(lexer, match):
-    lexer.advance(len(match.group(0)))
-

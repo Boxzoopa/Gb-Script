@@ -6,14 +6,15 @@ const number: int = 1;
 
 var flag = true;
 var num2 : int = 56;
+var undef;
 
 var num3 = 5;
 
 flag = false;
 msg = "bye";
 
-var nums : grp<int, 5> = [1, 2, 3, 4, 5];
-var empty : grp<bool, 3> = [];
+grp nums : int<5> = [1, 2, 3, 4, 5];
+grp empty : bool<3> = [];
 
 obj dog {
   var age: int;

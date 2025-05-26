@@ -1,5 +1,5 @@
 // 02.gbscript, Variable Declarations
-var foo = 45.5;
+var foo = 45;
 var bar = foo * 10;
 
-const isGreater = foo > 10;
+const isGreater = foo;

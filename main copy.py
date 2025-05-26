@@ -16,29 +16,30 @@ def open_file(input_file):
 
 
 if __name__ == "__main__":
-    src = open_file("examples/01.gbscript")
+    src = open_file("examples/03.gbscript")
 
-    lexer = Lexer()
-    tokens = lexer.tokenize(src)
+    lexer = Lexer(src)
+    tokens = lexer.tokenize()
     if lexer.errors :
-        print("GBSCRIPT::Lexer errors:")
+        print("Lexer errors:")
         for err in lexer.errors:
             print(" -", err)
         exit(1)
-
     #for tok in tokens:
     #    print(tok)
 
     parser = Parser(tokens)
     program = parser.parse()
-    
-    if parser.errors:
-        print("GBSCRIPT::Parser errors:")
+
+    if parser.errors :
+        print("Parser errors:")
         for err in parser.errors:
             print(" -", err)
         exit(1)
 
-    print(json.dumps(program.to_dict(), indent=2))
+    output = program.to_dict()
+    json_output = json.dumps(output, indent=2)
+    print(json_output)
 
     
 

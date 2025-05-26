@@ -8,5 +8,5 @@ obj Rect {
 
 const square = Rect(10, 10);
 
-var nums : grp<int, 4> = [1, 2, 3, 4];
+var nums : grp<int, 4> = []int[1, 2, 3, 4];
 //const num = nums[0];
