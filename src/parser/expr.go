@@ -4,6 +4,7 @@ package parser
 import (
 	"Gb-Script/src/ast"
 	"Gb-Script/src/lexer"
+	"Gb-Script/src/helpers"
 	"fmt"
 	"strconv"
 )
@@ -97,4 +98,52 @@ func parse_grouping_expr (p *parser) ast.Expr {
 	p.expect(lexer.R_PAREN)
 
 	return expr
+}
+
+func parse_obj_init_expr(p *parser, left ast.Expr, bp binding_power) ast.Expr {
+	objName := helpers.ExpectType[ast.SymbolExpr](left).Value
+	params := []ast.Expr{}
+
+	p.expect(lexer.L_PAREN)
+
+	for p.hasToks() && p.curKind() != lexer.R_PAREN {
+		expr := parse_expr(p, logical)
+		params = append(params, expr)
+
+		if p.curKind() != lexer.R_PAREN {
+			p.expect(lexer.COMMA)
+		}
+	}
+
+	p.expect(lexer.R_PAREN)
+
+	return ast.ObjectInstantiation{
+		ObjName:    objName,
+		Parameters: params,
+	}
+}
+
+
+func parse_group_init_expr(p *parser) ast.Expr {
+	//var underlying_type ast.Type
+	var contents = []ast.Expr{}
+
+	//underlying_type = parse_type(p, default_bp)
+	
+	p.expect(lexer.L_BRACK)
+	for p.hasToks() && p.curKind() != lexer.R_BRACK {
+		contents = append(contents, parse_expr(p, logical))
+
+		if p.curKind() != lexer.R_BRACK {
+			p.expect(lexer.COMMA)
+		}
+
+	}
+	p.expect(lexer.R_BRACK)
+	
+
+	return ast.GroupInstantiation{
+		//Underlying: underlying_type,
+		Contents: contents,
+	}
 }

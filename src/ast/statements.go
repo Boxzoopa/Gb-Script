@@ -22,10 +22,21 @@ type VarDeclStmt struct {
 
 func (n VarDeclStmt) stmt() {}
 
-type GrpDeclStmt struct {
-	Name         string
-	AssignedVals Expr
-	ElementType  Type
+type MethodStmt struct {
+	// Note: add type i.e func<int> function() {}
+	
+	
 }
 
-func (n GrpDeclStmt) stmt() {}
+type ObjectProperty struct {
+	// MAYBE: add bool IsStatic
+	Property string
+	Type Type
+}
+
+type ObjDeclStmt struct {
+	Name string
+	Properties []ObjectProperty
+}
+
+func (n ObjDeclStmt) stmt() {}

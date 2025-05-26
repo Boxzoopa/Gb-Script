@@ -14,7 +14,7 @@ var DebugL bool = false
 var DebugP bool = true
 
 func main() {
-	bytes, _ := os.ReadFile("./examples/03.gbscript")
+	bytes, _ := os.ReadFile("./examples/04.gbscript")
 	src := string(bytes)
 
 	tokens := lexer.Tokenize(src)

@@ -1,0 +1,83 @@
+# tokens.py
+from typing import Type
+
+class TokenKind:
+     # Identifiers & literals
+    IDENT = "identifier"
+    NUMBER = "number"
+    STRING = "string"
+    EOF = "eof"
+
+    LPAREN = "l_paren" # (
+    RPAREN = "r_paren" # )
+    LBRAC = "l_bracket" # [
+    RBRAC = "r_bracket" # ]
+    LCURL = "l_curl" # {
+    RCURL = "r_curl" # }
+
+    # Operators
+    PLUS = "plus"
+    DASH = "dash"
+    STAR = "star"
+    SLASH = "slash"
+    PERCENT = "percent"
+
+    ASSIGNMENT = "assignment" # =
+    EQUALS = "equals" # ==
+    NOT = "not" # !
+    NOT_EQ = "not_equals" # !=
+    LESS = "less"
+    LESS_EQ = "less_eq"
+    GREATER = "greater"
+    GREATER_EQ = "greater_eq"
+
+    OR = "or" 
+    AND = "and" 
+
+    # Delimiters
+    SEMICOLON = "semicolon"
+    COLON = "colon"
+    QUESTION = "question_mark"
+    DOT = "dot"
+    COMMA = "comma"
+    P_PLUS = "plus_plus" # ++
+    M_MINUS = "minus_minus" # --
+    PLUS_EQ = "plus_eq" # +=
+    MINUS_EQ = "minus_eq" # -=
+
+    # Reserved Keywords
+    VAR = "var"
+    CONST = "const"
+    OBJ = "obj"
+    GRP = "grp"
+    NEW = "new"
+    IMPORT = "import"
+    FROM ="from"
+    FUNC = "func"
+    IF = "if"
+    ELSE ="else"
+    WHILE ="while"
+    FOR ="for"
+    IN = "in"
+
+
+class Token:
+    def __init__(self, kind : TokenKind, value : str, ln : int = 0, col : int = 0):
+        self.kind = kind
+        self.value = value
+        self.line = ln
+        self.col = col
+
+    def __repr__(self):
+        if match_toks(self, [TokenKind.IDENT, TokenKind.NUMBER, TokenKind.STRING]):
+            return f"{self.kind}({self.value})" #, ln={self.line}, col={self.column})"
+        else:
+            return f"{self.kind}()" #, ln={self.line}, col={self.column})"
+
+
+def match_toks(token: Token, expected_tokens: list[TokenKind]) -> bool:
+    for expected in expected_tokens:
+        if expected == token.kind:
+            return True
+        
+    return False

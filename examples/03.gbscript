@@ -1,7 +1,7 @@
-// 02.gbscript, Advanced Variable Declarations
+// 03.gbscript, Advanced Variable Declarations
 var foo : int = -10 = 5;
-const bar : grp[str];
+var bar : grp[str];
 
 var undef: int;
 
-//var nums : grp[int];
+var nums : grp[int];

@@ -9,6 +9,7 @@ func (t SymbolType) _type() {}
 
 type GroupType struct {
 	Underlying Type
+	Size       int
 }
 
 func (t GroupType) _type() {}

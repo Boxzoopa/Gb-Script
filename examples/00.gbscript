@@ -12,8 +12,8 @@ var num3 = 5;
 flag = false;
 msg = "bye";
 
-var nums : grp[int] = [1, 2, 3, 4, 5];
-var empty : grp[bool] = [];
+var nums : grp<int, 5> = [1, 2, 3, 4, 5];
+var empty : grp<bool, 3> = [];
 
 obj dog {
   var age: int;

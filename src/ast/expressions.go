@@ -50,3 +50,18 @@ type AssignmentExpr struct {
 }
 
 func (n AssignmentExpr) expr() {}
+
+
+type ObjectInstantiation struct {
+	ObjName string
+	Parameters []Expr
+}
+
+func (n ObjectInstantiation) expr() {}
+
+type GroupInstantiation struct {
+	//Underlying Type
+	Contents []Expr
+}
+
+func (n GroupInstantiation) expr() {}
