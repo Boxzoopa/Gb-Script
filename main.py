@@ -2,6 +2,7 @@
 import sys
 from src.lexer import Lexer
 from src.parser import Parser
+from src.eval.evaluator import Evaluator
 import json
 
 
@@ -34,18 +35,27 @@ def debug_parser(program, output=False):
     if output:
         print(json.dumps(program.to_dict(), indent=3))
 
+
 if __name__ == "__main__":
-    src = open_file("examples/00.gbscript")
+    src = open_file("examples/02.gbscript")
 
     lexer = Lexer()
     tokens = lexer.tokenize(src)
 
-    debug_lexer(tokens, output=True)
+    debug_lexer(tokens, output=False)
 
     parser = Parser(tokens)
     program = parser.parse()
     
-    debug_parser(program, output=True)
+    debug_parser(program, output=False)
+
+    
+
+    evaluator = Evaluator()
+    evaluator.evaluate(program)
+
+
+
 
     
 

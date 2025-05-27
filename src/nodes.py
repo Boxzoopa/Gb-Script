@@ -17,7 +17,7 @@ class Expr(Stmt):
 # Statements
 class Program(Stmt):
     def __init__(self, body=None):
-        super().__init__(type="Program")
+        self.type="Program"
         self.body : List[Stmt] = body if body is not None else []
 
     def to_dict(self):
@@ -28,6 +28,7 @@ class Program(Stmt):
 
 class VariableDecleration(Stmt):
     def __init__(self, name: str, value: Expr=None, is_const: bool = False, explicit_type=None):
+        self.type = "VariableDecleration"
         self.name = name
         self.value = value or NullLiteral() if value is None else value
         self.is_const = is_const
@@ -180,7 +181,7 @@ class IterateStmt(Stmt):
 # Expressions
 class Identifier(Expr):
     def __init__(self, value):
-        super().__init__()
+        self.type = "Identifier"
         self.value : str = value
 
     def to_dict(self):
@@ -191,7 +192,7 @@ class Identifier(Expr):
 
 class NumericLiteral(Expr):
     def __init__(self, value):
-        super().__init__()
+        self.type = "NumericLiteral"
         self.value : int = value
 
     def to_dict(self):
@@ -202,7 +203,7 @@ class NumericLiteral(Expr):
 
 class StringLiteral(Expr):
     def __init__(self, value):
-        super().__init__()
+        self.type = "StringLiteral"
         self.value : str = value
 
     def to_dict(self):
@@ -213,7 +214,7 @@ class StringLiteral(Expr):
 
 class NullLiteral(Expr):
     def __init__(self):
-        super().__init__()
+        self.type = "NullLiteral"
         self.value = "null"
 
     def to_dict(self):
@@ -238,7 +239,7 @@ class IndexLiteral(Expr):
     
 class BinaryExpr(Expr):
     def __init__(self, left, right, op):
-        super().__init__()
+        self.type = "BinaryExpr"
         self.left = left
         self.right = right
         self.op = op
@@ -269,13 +270,14 @@ class UnaryExpr(Expr):
 class AssignmentExpr(Expr):
     def __init__(self, assignee, value, op="="):
         super().__init__()
+        self.type = "AssignmentExpr"
         self.assignee = assignee # +=, =, -=, 
         self.value = value
         self.op = op
 
     def to_dict(self):
         return {
-            "type": "AssignmentExpr",
+            "type": self.type,
             "assignee": self.assignee.to_dict(),
             "value": self.value.to_dict(),
             "operator": self.op
