@@ -13,6 +13,7 @@ PRECEDENCE = {
     "additive": (TokenType.PLUS, TokenType.DASH),
     "multiplicative": (TokenType.STAR, TokenType.SLASH, TokenType.PERCENT),
     "unary": (TokenType.DASH, TokenType.NOT, TokenType.PLUS),
+    "postfix": (TokenType.P_PLUS, TokenType.M_MINUS),
     "call": (TokenType.LPAREN, TokenType.DOT),
     "primary": (TokenType.IDENT, TokenType.NUMBER, TokenType.STRING, TokenType.NULL),
 }
@@ -86,15 +87,24 @@ class Parser:
             case TokenType.IF:
                 return self.parse_if()
             
+            case TokenType.WHILE:
+                return self.parse_while()
+            
+            case TokenType.FOR:
+                return self.parse_for()
+            
+            case TokenType.ITERATE:
+                return self.parse_foreach()
+        
             case default:
                 expr = self.parse_expr()
 
                 # If it looks like an assignment (e.g. `a = b` or `a.b = c`)
                 if self.at().type in PRECEDENCE["assignment"]:
-                    self.adv()
+                    op_token = self.adv().value  # ← capture the actual operator token
                     value = self.parse_expr()
                     self.expect(TokenType.SEMICOLON)
-                    return AssignmentExpr(expr, value)
+                    return AssignmentExpr(expr, value, op_token)
 
                 self.expect(TokenType.SEMICOLON)
                 return expr
@@ -278,11 +288,81 @@ class Parser:
 
         return IfStmt(conditions, then_branch, elif_branches, else_branch)
 
+    def parse_while(self):
+        self.adv()
+        self.expect(TokenType.LPAREN)
+        condition = self.parse_expr()
+        self.expect(TokenType.RPAREN)
+        self.expect(TokenType.LCURL)
+        body = []
+
+        while self.not_at_end() and self.at().type != TokenType.RCURL:
+            stmt = self.parse_stmt()
+            if stmt:
+                body.append(stmt)
+
+        self.expect(TokenType.RCURL)
+
+        return WhileStmt(condition, body)
+
+    def parse_for(self):
+        self.adv()
+        self.expect(TokenType.LPAREN)
+        init = None
+
+        if self.at().type == TokenType.VAR:
+            init = self.parse_var_decl()
+        
+        condition = None
+        while self.at().type != TokenType.SEMICOLON:
+            if condition is None:
+                condition = self.parse_expr()
+            else:
+                self.errors.append(f"Unexpected token {self.at().value} in for loop condition at line {self.at().ln}, col {self.at().col}")
+                self.adv()
+        self.expect(TokenType.SEMICOLON)
+
+        increment = None
+        if self.at().type != TokenType.RPAREN:
+            increment = self.parse_expr()
+            if self.at().type != TokenType.RPAREN:
+                self.errors.append(f"Expected ')' after for loop increment at line {self.at().ln}, col {self.at().col}")
+        self.expect(TokenType.RPAREN)
+        self.expect(TokenType.LCURL)
+        body = []
+        while self.not_at_end() and self.at().type != TokenType.RCURL:
+            stmt = self.parse_stmt()
+            if stmt:
+                body.append(stmt)
+        self.expect(TokenType.RCURL)
+        return ForStmt(init, condition, increment, body)
+
+    def parse_foreach(self):
+        self.adv()
+        self.expect(TokenType.LPAREN)
+        iteratee = self.expect(TokenType.IDENT).value
+
+        self.expect(TokenType.IN)
+        iterable = self.expect(TokenType.IDENT).value
+
+        self.expect(TokenType.RPAREN)
+        self.expect(TokenType.LCURL)
+
+        body = []
+        while self.not_at_end() and self.at().type != TokenType.RCURL:
+            stmt = self.parse_stmt()
+            if stmt:
+                body.append(stmt)
+
+        self.expect(TokenType.RCURL)
+
+        return IterateStmt(iterable, iteratee, body)
+
+
 
     # Other Precedence Parsing Methods
     def parse_expr(self):
         return self.parse_logical()
-    
     
     def parse_logical(self):
         left = self.parse_relational()
@@ -304,9 +384,9 @@ class Parser:
         left  = self.parse_additive()
 
         if self.at().type in PRECEDENCE["assignment"]: # =
-            self.adv()  # consume '='
+            op = self.adv().value # consume '=', '+=', '-=', etc.
             value = self.parse_assignment()
-            return AssignmentExpr(left, value)
+            return AssignmentExpr(left, value, op)
         
         return left
 
@@ -335,7 +415,17 @@ class Parser:
             op = self.adv().value
             operand = self.parse_unary()  # recursive to support chains like --x
             return UnaryExpr(operand, op)
-        return self.parse_call_member()
+        return self.parse_postfix()
+    
+    def parse_postfix(self):
+        expr = self.parse_call_member()  # `a`, `a.b`, `a[0]`, etc.
+
+        while self.at().type in PRECEDENCE["postfix"]:
+            op = self.adv().value  # ++ or --
+            expr = UnaryExpr(expr, op, postfix=True)
+
+        return expr
+
 
     # Call/Member Parsing
     def parse_call_member(self):

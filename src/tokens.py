@@ -60,6 +60,7 @@ class TokenType:
     ELSE ="else"
     WHILE ="while"
     FOR ="for"
+    ITERATE = "iterate"
     IN = "in"
     RETURN = "return"
 

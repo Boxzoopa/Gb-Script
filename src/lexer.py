@@ -12,6 +12,7 @@ KEYWORDS = {
     "else": TokenType.ELSE,
     "while": TokenType.WHILE,
     "for": TokenType.FOR,
+    "iterate": TokenType.ITERATE,
     "in": TokenType.IN,
     "or": TokenType.OR,
     "and": TokenType.AND,

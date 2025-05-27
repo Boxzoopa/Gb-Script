@@ -13,16 +13,16 @@ var num3 = 5;
 flag = false;
 msg = "bye";
 
-grp nums : int<5> = [1, 2, 3, 4, 5];
-grp empty : bool<3> = [];
+grp nums : int[5] = [1, 2, 3, 4, 5];
+grp empty : bool[3] = [];
 
 obj dog {
-  var age: int;
-  var woof_type: int;
+  age: int,
+  woof_type: int,
 };
 
-func createDog(int age, int wt) {
-  var d = dog();
+func createDog(age: int, wt: int) {
+  obj d = dog.new();
 
   d.age = age;
   d.woof_type = wt;
@@ -31,11 +31,12 @@ func createDog(int age, int wt) {
 
 }
 
-func woof(int wt) {
-  while (int x; x != 5) {
+func woof(wt: int) {
+  var x: int = 0;
+  while (x != 5) {
     if (wt == 0) {
       print("woof 0");
-    } else if (wt == 1) {
+    } elif (wt == 1) {
       print("woof 1");
     }
   }

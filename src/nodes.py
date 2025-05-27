@@ -108,6 +108,16 @@ class FunctionDeclaration(Stmt):
             "body": [stmt.to_dict() for stmt in self.body]
         }
     
+class ReturnStmt(Stmt):
+    def __init__(self, value=None):
+        self.value = value or NullLiteral()  # Default to null if no value is provided
+
+    def to_dict(self):
+        return {
+            "type": "ReturnStmt",
+            "value": self.value.to_dict()
+        }
+    
 class IfStmt(Stmt):
     def __init__(self, conditions, then_branch, elif_branches=None, else_branch=None):
         self.conditions = conditions
@@ -123,18 +133,48 @@ class IfStmt(Stmt):
             "elif_branches": [stmt.to_dict() for stmt in self.elif_branches],
             "else_branch": [stmt.to_dict() for stmt in self.else_branch]
         }
-        
-
-class ReturnStmt(Stmt):
-    def __init__(self, value=None):
-        self.value = value or NullLiteral()  # Default to null if no value is provided
+    
+class WhileStmt(Stmt):
+    def __init__(self, condition, body):
+        self.condition = condition
+        self.body = body
 
     def to_dict(self):
         return {
-            "type": "ReturnStmt",
-            "value": self.value.to_dict()
+            "type": "WhileStmt",
+            "condition": self.condition.to_dict(),
+            "body": [stmt.to_dict() for stmt in self.body]
+        }
+    
+class ForStmt(Stmt):
+    def __init__(self, init, condition, increment, body):
+        self.init = init  # Typically a VariableDecleration or AssignmentExpr
+        self.condition = condition
+        self.increment = increment  # Usually an AssignmentExpr
+        self.body = body
+
+    def to_dict(self):
+        return {
+            "type": "ForStmt",
+            "init": self.init.to_dict(),
+            "condition": self.condition.to_dict(),
+            "increment": self.increment.to_dict(),
+            "body": [stmt.to_dict() for stmt in self.body]
         }
 
+class IterateStmt(Stmt):
+    def __init__(self, iterable, iteratee, body):
+        self.iterable = iterable  # Typically an Identifier or a GroupDecleration
+        self.iteratee = iteratee # i.e. the n in 'for n in nums'
+        self.body = body
+
+    def to_dict(self):
+        return {
+            "type": "IterateStmt",
+            "iterable": self.iterable,
+            "iteratee": self.iteratee,
+            "body": [stmt.to_dict() for stmt in self.body]
+        }
 
 
 # Expressions
@@ -212,29 +252,33 @@ class BinaryExpr(Expr):
         }
 
 class UnaryExpr(Expr):
-    def __init__(self, right, op):
+    def __init__(self, right, op, postfix=False):
         super().__init__()
         self.right = right
         self.op = op
+        self.postfix = postfix
 
     def to_dict(self):
         return {
             "type": "UnaryExpr",
             "operator": self.op,  # or str(self.op)
-            "right": self.right.to_dict()
+            "right": self.right.to_dict(),
+            "postfix": self.postfix
         }
     
 class AssignmentExpr(Expr):
-    def __init__(self, assignee, value):
+    def __init__(self, assignee, value, op="="):
         super().__init__()
         self.assignee = assignee # +=, =, -=, 
         self.value = value
+        self.op = op
 
     def to_dict(self):
         return {
             "type": "AssignmentExpr",
             "assignee": self.assignee.to_dict(),
-            "value": self.value.to_dict()
+            "value": self.value.to_dict(),
+            "operator": self.op
         }
 
 class CallExpr(Expr):
