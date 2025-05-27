@@ -4,24 +4,24 @@ var msg : str = "Hello world"; // variable types are static or dynamic
 
 const number: int = 1;
 
-var flag = true;
+var flag = 1;
 var num2 : int = 56;
 var undef;
 
 var num3 = 5;
 
-flag = false;
+flag = 0;
 msg = "bye";
 
 grp nums : int[5] = [1, 2, 3, 4, 5];
-grp empty : bool[3] = [];
+grp empty : int[3] = [];
 
 obj dog {
   age: int,
   woof_type: int,
 };
 
-func createDog(age: int, wt: int) {
+func createDog(age: int, wt: int) : object {
   obj d = dog.new();
 
   d.age = age;
@@ -38,11 +38,25 @@ func woof(wt: int) {
       print("woof 0");
     } elif (wt == 1) {
       print("woof 1");
-    }
+    } // else also exists, like in c
+    x++;
   }
-  x++;
 }
 
 var petty = createDog(10, 0);
 
 woof(petty.woof_type);
+
+var a : int = 0;
+while (a < 10) {
+    a++ ;
+}
+
+for (var i = 0; i < 10; i++) {
+    print(i);
+}
+
+iterate (num in nums) { // iterate is like foreach
+    print(num);
+}
+//Gbscript Code -> Lexer -> Parser -> Evaluator > Transformer(intermediate) > Transformer(C) > Generator(C)> C ompile(C + GBDK + GBScript Utils(custom library))

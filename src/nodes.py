@@ -26,9 +26,9 @@ class Program(Stmt):
             "body": [stmt.to_dict() for stmt in self.body]
         }
 
-class VariableDecleration(Stmt):
+class VariableDeclaration(Stmt):
     def __init__(self, name: str, value: Expr=None, is_const: bool = False, explicit_type=None):
-        self.type = "VariableDecleration"
+        self.type = "VariableDeclaration"
         self.name = name
         self.value = value or NullLiteral() if value is None else value
         self.is_const = is_const
@@ -43,9 +43,9 @@ class VariableDecleration(Stmt):
             "value": self.value.to_dict()
         }
 
-class GroupDecleration(Stmt):
+class GroupDeclaration(Stmt):
     def __init__(self, name, type, size=0, items=None):
-        super().__init__(type)
+        self.type = "GroupDecleration"
         self.name = name
         self.type = type
         self.size = size
@@ -53,7 +53,7 @@ class GroupDecleration(Stmt):
 
     def to_dict(self):
         return {
-            "type": "GroupDecleration",
+            "type": "GroupDeclaration",
             "name": self.name,
             "declared_type": self.type,
             "size": self.size,
@@ -74,7 +74,7 @@ class Property:
     
 class ObjectDeclaration(Stmt):
     def __init__(self, name: str, properties: List[Property]):
-        super().__init__(type="ObjectDeclaration")
+        self.type="ObjectDeclaration"
         self.name = name
         self.properties = properties
 
@@ -95,6 +95,7 @@ class ObjectDeclaration(Stmt):
 class FunctionDeclaration(Stmt):
     def __init__(self, name: str, params: List[Property],
                  body: List[Stmt], return_type: str = None):
+        self.type = "FunctionDeclaration"
         self.name = name
         self.params = params
         self.return_type = return_type if return_type is not None else "void"
@@ -254,7 +255,7 @@ class BinaryExpr(Expr):
 
 class UnaryExpr(Expr):
     def __init__(self, right, op, postfix=False):
-        super().__init__()
+        self.type = "UnaryExpr"
         self.right = right
         self.op = op
         self.postfix = postfix
@@ -285,7 +286,7 @@ class AssignmentExpr(Expr):
 
 class CallExpr(Expr):
     def __init__(self, caller, args = List[Expr]):
-        super().__init__()
+        self.type = "CallExpr"
         self.caller = caller
         self.args = args
 
@@ -298,7 +299,7 @@ class CallExpr(Expr):
 
 class MemberExpr(Expr):
     def __init__(self, object, property, computed=False):
-        super().__init__()
+        self.type ="MemberExpr"
         self.object = object
         self.property = property
         self.computed = computed  # Default to dot notation

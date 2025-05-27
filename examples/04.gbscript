@@ -5,13 +5,13 @@ obj Rect {
     height: int,
 };
 
-grp phrases : str[3] = ["Hi", "bye", "Seeya"];
-grp nums : int[5] = [1, 2, 3];
+//grp phrases : str[3] = ["Hi", "bye", "Seeya"];
+//grp nums : int[5] = [1, 2, 3];
 
 obj square = Rect.new();
 square.width;
 square.height = 5;
 
 
-const num = nums[0];
+//const num = nums[0];
 

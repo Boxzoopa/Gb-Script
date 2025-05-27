@@ -44,7 +44,7 @@ class Parser:
     def get_type(self):
         if self.at().type == TokenType.IDENT:
             type_name = self.adv().value
-            if type_name not in ("int", "str", "bool", "float"):
+            if type_name not in ("int", "str", "object"):
                 self.errors.append(f"Unsupported type '{type_name}' at line {self.at().ln}, col {self.at().col}")
                 return None
             return type_name
@@ -124,7 +124,7 @@ class Parser:
             if is_const:
                 self.errors.append(f"Constant variable '{name}' must be initialized, at line {self.at().ln}, col {self.at().col}")
 
-            return VariableDecleration(
+            return VariableDeclaration(
                 name, is_const=is_const, value=None, explicit_type=type_name
             )
         
@@ -132,7 +132,7 @@ class Parser:
         assigned_value = self.parse_expr()
         self.expect(TokenType.SEMICOLON)
 
-        return VariableDecleration(
+        return VariableDeclaration(
             name, is_const=is_const, value=assigned_value, explicit_type=type_name
         )
 
@@ -147,7 +147,7 @@ class Parser:
 
         if self.at().type == TokenType.SEMICOLON:
             self.adv()
-            return GroupDecleration(name, group_type, size)
+            return GroupDeclaration(name, group_type, size)
         
         self.expect(TokenType.ASSIGNMENT)
         self.expect(TokenType.LBRAC)
@@ -166,7 +166,7 @@ class Parser:
 
         self.expect(TokenType.RBRAC)
         self.expect(TokenType.SEMICOLON)
-        return GroupDecleration(name, group_type, size, items)
+        return GroupDeclaration(name, group_type, size, items)
 
     def parse_object_decl(self):
         self.adv()
@@ -193,7 +193,7 @@ class Parser:
             self.adv()
             expr = self.parse_expr()
             self.expect(TokenType.SEMICOLON)
-            return VariableDecleration(name, value=expr, explicit_type="object")
+            return VariableDeclaration(name, value=expr, explicit_type="object")
 
         else:
             self.errors.append(f"Expected '{{' or '=' after object name '{name}' at line {self.at().ln}, col {self.at().col}")

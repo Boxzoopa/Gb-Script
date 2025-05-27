@@ -37,7 +37,7 @@ def debug_parser(program, output=False):
 
 
 if __name__ == "__main__":
-    src = open_file("examples/02.gbscript")
+    src = open_file("examples/00.gbscript")
 
     lexer = Lexer()
     tokens = lexer.tokenize(src)
@@ -47,12 +47,11 @@ if __name__ == "__main__":
     parser = Parser(tokens)
     program = parser.parse()
     
-    debug_parser(program, output=False)
+    debug_parser(program, output=True)
 
-    
 
-    evaluator = Evaluator()
-    evaluator.evaluate(program)
+    #evaluator = Evaluator()
+    #evaluator.evaluate(program)
 
 
 
