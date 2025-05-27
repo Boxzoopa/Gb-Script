@@ -56,6 +56,7 @@ class TokenType:
     FROM ="from"
     FUNC = "func"
     IF = "if"
+    ELIF = "elif"
     ELSE ="else"
     WHILE ="while"
     FOR ="for"

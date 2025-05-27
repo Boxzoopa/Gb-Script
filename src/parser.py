@@ -83,6 +83,9 @@ class Parser:
             case TokenType.RETURN:
                 return self.parse_return()
             
+            case TokenType.IF:
+                return self.parse_if()
+            
             case default:
                 expr = self.parse_expr()
 
@@ -233,6 +236,47 @@ class Parser:
         value = self.parse_expr()
         self.expect(TokenType.SEMICOLON)
         return ReturnStmt(value)
+
+    def parse_if(self):
+        self.adv()
+        conditions = []
+        self.expect(TokenType.LPAREN)
+
+        while self.at().type != TokenType.RPAREN:
+            condition = self.parse_expr()
+            conditions.append(condition)
+
+            if self.at().type == TokenType.COMMA:
+                self.adv()
+            else:
+                break
+        self.expect(TokenType.RPAREN)
+        self.expect(TokenType.LCURL)
+        then_branch = []
+        elif_branches = []
+        else_branch = []
+
+        while self.not_at_end() and self.at().type != TokenType.RCURL:
+            stmt = self.parse_stmt()
+            if stmt:
+                then_branch.append(stmt)
+
+        self.expect(TokenType.RCURL)
+
+        if self.at().type == TokenType.ELIF:
+            elif_branches.append(self.parse_if())
+        
+        if self.at().type == TokenType.ELSE:
+            self.adv()
+            self.expect(TokenType.LCURL)
+            while self.not_at_end() and self.at().type != TokenType.RCURL:
+                stmt = self.parse_stmt()
+                if stmt:
+                    else_branch.append(stmt)
+            self.expect(TokenType.RCURL)
+
+
+        return IfStmt(conditions, then_branch, elif_branches, else_branch)
 
 
     # Other Precedence Parsing Methods

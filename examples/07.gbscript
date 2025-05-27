@@ -1,0 +1,5 @@
+// 07.gbscript, Loops
+
+while (a < 10) {
+    a++;
+}

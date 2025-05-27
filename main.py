@@ -35,7 +35,7 @@ def debug_parser(program, output=False):
         print(json.dumps(program.to_dict(), indent=3))
 
 if __name__ == "__main__":
-    src = open_file("examples/05.gbscript")
+    src = open_file("examples/07.gbscript")
 
     lexer = Lexer()
     tokens = lexer.tokenize(src)
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     parser = Parser(tokens)
     program = parser.parse()
     
-    debug_parser(program, output=True)
+    #debug_parser(program, output=True)
 
     
 

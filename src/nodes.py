@@ -59,7 +59,6 @@ class GroupDecleration(Stmt):
             "items": [item.to_dict() for item in self.items]  # Assuming items will be added later
         }
 
-
 class Property:
     def __init__(self, name: str, type: str):
         self.name = name
@@ -109,6 +108,23 @@ class FunctionDeclaration(Stmt):
             "body": [stmt.to_dict() for stmt in self.body]
         }
     
+class IfStmt(Stmt):
+    def __init__(self, conditions, then_branch, elif_branches=None, else_branch=None):
+        self.conditions = conditions
+        self.then_branch = then_branch
+        self.elif_branches = elif_branches if elif_branches is not None else []
+        self.else_branch = else_branch if else_branch is not None else []
+
+    def to_dict(self):
+        return {
+            "type": "IfStmt",
+            "conditions": [cond.to_dict() for cond in self.conditions],
+            "then_branch": [stmt.to_dict() for stmt in self.then_branch],
+            "elif_branches": [stmt.to_dict() for stmt in self.elif_branches],
+            "else_branch": [stmt.to_dict() for stmt in self.else_branch]
+        }
+        
+
 class ReturnStmt(Stmt):
     def __init__(self, value=None):
         self.value = value or NullLiteral()  # Default to null if no value is provided
