@@ -1,10 +1,8 @@
 // 03.gbscript, Advanced Variable Declarations
-var foo = -10.5;
-//foo += 1;
-//foo = foo + 30;
+var foo = -10;
+foo += 1;
+foo = foo + 30;
 
 
-//var undef: int;
+var undef: int;
 
-//grp bar : str, 3;
-//grp nums : int, 5;

@@ -1,12 +1,13 @@
 // 04.gbscript, Arrays(Groups) and Structs(Objects)
 
 obj Rect {
-    width: int;
-    height: int;
-}
+    width: int,
+    height: int,
+};
 
+//const square = Rect(10, 10);
 
-const square = Rect(10, 10);
+//grp bar : str(3);
+//grp nums : int(5);
 
-var nums : grp<int, 4> = []int[1, 2, 3, 4];
 //const num = nums[0];

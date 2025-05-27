@@ -4,6 +4,7 @@ from src.lexer import Lexer
 from src.parser import Parser
 import json
 
+
 def open_file(input_file):
     try:
         with open(input_file, 'r') as f:
@@ -27,7 +28,7 @@ def debug_lexer(toks, output =False):
             print(tok)
 
 if __name__ == "__main__":
-    src = open_file("examples/02.gbscript")
+    src = open_file("examples/04.gbscript")
 
     lexer = Lexer()
     tokens = lexer.tokenize(src)

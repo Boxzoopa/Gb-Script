@@ -1,6 +1,22 @@
 from src.nodes import *
 from src.tokens import Token, TokenType
 
+## Precedence Levels Reference, Lowest to Highest
+PRECEDENCE = {
+    "default": (TokenType.SEMICOLON, TokenType.EOF),
+    "comma": (TokenType.COMMA,),
+    "assignment": (TokenType.ASSIGNMENT, TokenType.PLUS_EQ, TokenType.MINUS_EQ),
+    "logical": (TokenType.AND, TokenType.OR),
+    "relational": (TokenType.EQUALS, TokenType.NOT_EQ,
+                   TokenType.GREATER, TokenType.GREATER_EQ,
+                   TokenType.LESS, TokenType.LESS_EQ),
+    "additive": (TokenType.PLUS, TokenType.DASH),
+    "multiplicative": (TokenType.STAR, TokenType.SLASH, TokenType.PERCENT),
+    "unary": (TokenType.DASH, TokenType.NOT, TokenType.PLUS),
+    "call": (TokenType.LPAREN, TokenType.DOT),
+    "primary": (TokenType.IDENT, TokenType.NUMBER, TokenType.STRING, TokenType.NULL),
+}
+
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
@@ -23,7 +39,19 @@ class Parser:
             return self.adv()
         else:
             self.errors.append(f"Expected token {expected_type} at line {self.at().ln}, col {self.at().col}, but found '{self.at().value}'")
+    
+    def get_type(self):
+        if self.at().type == TokenType.IDENT:
+            type_name = self.adv().value
+            print(type_name)
+            if type_name not in ("int", "str", "bool", "float"):
+                self.errors.append(f"Unsupported type '{type_name}' at line {self.at().ln}, col {self.at().col}")
+                return None
+            return type_name
+        else:
+            self.errors.append(f"Expected type identifier at line {self.at().ln}, col {self.at().col}")
             return None
+
 
 
     def parse(self):
@@ -44,32 +72,25 @@ class Parser:
             case TokenType.CONST:
                 return self.parse_var_decl()
             
+            case TokenType.OBJ:
+                return self.parse_object_decl()
+            
             case default:
                 expr = self.parse_expr()
                 self.expect(TokenType.SEMICOLON)
                 return expr
-    
-    def parse_type(self):
-        if self.at().type == TokenType.IDENT:
-            type_name = self.adv().value
-            print(type_name)
-            if type_name not in ("int", "str", "bool", "float"):
-                self.errors.append(f"Unsupported type '{type_name}' at line {self.at().ln}, col {self.at().col}")
-                return None
-            return type_name
-        else:
-            self.errors.append(f"Expected type identifier at line {self.at().ln}, col {self.at().col}")
-            return None
+
+    def parse_expr(self):
+        return self.parse_assignment()
 
     def parse_var_decl(self):
         is_const = self.adv().type == TokenType.CONST
         name = self.expect(TokenType.IDENT).value
         type_name = None
 
-        # TODO: add explicit type annotation support i.e var a: int = 5;
         if self.at().type == TokenType.COLON:
             self.adv()
-            type_name = self.parse_type()
+            type_name = self.get_type()
 
         if self.at().type == TokenType.SEMICOLON:
             self.adv()
@@ -88,9 +109,34 @@ class Parser:
             name, is_const=is_const, value=assigned_value, explicit_type=type_name
         )
 
-    def parse_expr(self):
-        return self.parse_additive()
-    
+    def parse_object_decl(self):
+        self.adv()
+        name = self.expect(TokenType.IDENT).value
+        properties = []
+        self.expect(TokenType.LCURL)
+        while self.at().type != TokenType.RCURL:
+            prop_name = self.expect(TokenType.IDENT).value
+            self.expect(TokenType.COLON)
+            prop_type = self.get_type()
+            properties.append(Property(prop_name, prop_type))
+            if self.at().type == TokenType.COMMA:
+                self.adv()
+        
+        self.expect(TokenType.RCURL)
+        self.expect(TokenType.SEMICOLON)
+        return ObjectDeclaration(name, properties)
+
+    def parse_assignment(self):
+        left  = self.parse_additive()
+
+        if self.at().type in PRECEDENCE["assignment"]: # =
+            self.adv()  # consume '='
+            value = self.parse_assignment()
+            return AssignmentExpr(left, value)
+        
+        return left
+
+
 
     def parse_additive(self):
         left = self.parse_multiplicitave()
@@ -101,8 +147,9 @@ class Parser:
             left = BinaryExpr(left, right, op)
 
         return left
+
     def parse_multiplicitave(self):
-        left = self.parse_primary()
+        left = self.parse_unary()
 
         while self.at().type in (TokenType.STAR, TokenType.SLASH, TokenType.PERCENT):
             op = self.adv().value
@@ -110,6 +157,13 @@ class Parser:
             left = BinaryExpr(left, right, op)
 
         return left
+
+    def parse_unary(self):
+        if self.at().type in (TokenType.DASH, TokenType.NOT, TokenType.PLUS):
+            op = self.adv().value
+            operand = self.parse_unary()  # recursive to support chains like --x
+            return UnaryExpr(operand, op)
+        return self.parse_primary()
 
     def parse_primary(self):
         tk = self.at().type

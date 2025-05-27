@@ -141,20 +141,76 @@ class Lexer:
                         return 1
                 return 0
 
-            matched = (
-                match_two_char('=', '=', TokenType.EQUALS, TokenType.ASSIGNMENT) or
-                match_two_char('+', '+', TokenType.P_PLUS, TokenType.PLUS) or
-                match_two_char('+', '=', TokenType.PLUS_EQ, TokenType.PLUS) or
-                match_two_char('-', '-', TokenType.M_MINUS, TokenType.DASH) or
-                match_two_char('-', '=', TokenType.MINUS_EQ, TokenType.DASH) or
-                match_two_char('!', '=', TokenType.NOT_EQ, TokenType.NOT) or
-                match_two_char('<', '=', TokenType.LESS_EQ, TokenType.LESS) or
-                match_two_char('>', '=', TokenType.GREATER_EQ, TokenType.GREATER)
-            )
-            if matched:
-                i += matched
-                self.col += matched
+            # Two-char or one-char operators
+            if ch == '=':
+                if self.peek(source, i) == '=':
+                    self.add_token(TokenType.EQUALS, '==')
+                    i += 2
+                    self.col += 2
+                else:
+                    self.add_token(TokenType.ASSIGNMENT, '=')
+                    i += 1
+                    self.col += 1
                 continue
+            elif ch == '+':
+                if self.peek(source, i) == '+':
+                    self.add_token(TokenType.P_PLUS, '++')
+                    i += 2
+                    self.col += 2
+                elif self.peek(source, i) == '=':
+                    self.add_token(TokenType.PLUS_EQ, '+=')
+                    i += 2
+                    self.col += 2
+                else:
+                    self.add_token(TokenType.PLUS, '+')
+                    i += 1
+                    self.col += 1
+                continue
+            elif ch == '-':
+                if self.peek(source, i) == '-':
+                    self.add_token(TokenType.M_MINUS, '--')
+                    i += 2
+                    self.col += 2
+                elif self.peek(source, i) == '=':
+                    self.add_token(TokenType.MINUS_EQ, '-=')
+                    i += 2
+                    self.col += 2
+                else:
+                    self.add_token(TokenType.DASH, '-')
+                    i += 1
+                    self.col += 1
+                continue
+            elif ch == '!':
+                if self.peek(source, i) == '=':
+                    self.add_token(TokenType.NOT_EQ, '!=')
+                    i += 2
+                    self.col += 2
+                else:
+                    self.add_token(TokenType.NOT, '!')
+                    i += 1
+                    self.col += 1
+                continue
+            elif ch == '<':
+                if self.peek(source, i) == '=':
+                    self.add_token(TokenType.LESS_EQ, '<=')
+                    i += 2
+                    self.col += 2
+                else:
+                    self.add_token(TokenType.LESS, '<')
+                    i += 1
+                    self.col += 1
+                continue
+            elif ch == '>':
+                if self.peek(source, i) == '=':
+                    self.add_token(TokenType.GREATER_EQ, '>=')
+                    i += 2
+                    self.col += 2
+                else:
+                    self.add_token(TokenType.GREATER, '>')
+                    i += 1
+                    self.col += 1
+                continue
+
 
             # String literal
             if ch == '"':
