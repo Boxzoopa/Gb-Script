@@ -1,0 +1,10 @@
+// 05.gbscript, Functions
+
+func add(a:int, b:int) : int {
+    var result = a + b;
+
+    return result;
+}
+
+add(1, 1);
+

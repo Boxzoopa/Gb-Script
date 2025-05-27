@@ -18,6 +18,8 @@ KEYWORDS = {
     "import": TokenType.IMPORT,
     "from": TokenType.FROM,
     "null": TokenType.NULL,
+    "return": TokenType.RETURN,
+    "func" : TokenType.FUNC,
 }
 
 WHITESPACE = {' ', '\t'}

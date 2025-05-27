@@ -60,6 +60,7 @@ class TokenType:
     WHILE ="while"
     FOR ="for"
     IN = "in"
+    RETURN = "return"
 
 
 class Token:

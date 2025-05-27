@@ -92,18 +92,33 @@ class ObjectDeclaration(Stmt):
             "properties": self.props_to_dict()
         }
 
-class ObjectAssignment(Stmt):
-    def __init__(self, name: str, value: Expr):
-        super().__init__(type="ObjectAssignment")
+class FunctionDeclaration(Stmt):
+    def __init__(self, name: str, params: List[Property],
+                 body: List[Stmt], return_type: str = None):
         self.name = name
-        self.value = value
-
-    def to_dict(self):  
+        self.params = params
+        self.return_type = return_type if return_type is not None else "void"
+        self.body = body if body is not None else []
+    
+    def to_dict(self):
         return {
-            "type": "ObjectAssignment",
+            "type": "FunctionDeclaration",
             "name": self.name,
+            "params": [param.to_dict() for param in self.params],
+            "return_type": self.return_type,
+            "body": [stmt.to_dict() for stmt in self.body]
+        }
+    
+class ReturnStmt(Stmt):
+    def __init__(self, value=None):
+        self.value = value or NullLiteral()  # Default to null if no value is provided
+
+    def to_dict(self):
+        return {
+            "type": "ReturnStmt",
             "value": self.value.to_dict()
         }
+
 
 
 # Expressions
@@ -163,6 +178,7 @@ class IndexLiteral(Expr):
             "index": self.index,
             "value": self.value.to_dict()
         }
+    
     
 class BinaryExpr(Expr):
     def __init__(self, left, right, op):

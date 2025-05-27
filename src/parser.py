@@ -77,6 +77,12 @@ class Parser:
             case TokenType.OBJ:
                 return self.parse_object_decl()
             
+            case TokenType.FUNC:
+                return self.parse_func_decl()
+            
+            case TokenType.RETURN:
+                return self.parse_return()
+            
             case default:
                 expr = self.parse_expr()
 
@@ -179,6 +185,54 @@ class Parser:
         else:
             self.errors.append(f"Expected '{{' or '=' after object name '{name}' at line {self.at().ln}, col {self.at().col}")
             return None
+
+    def parse_func_decl(self):
+        self.adv()
+        name = self.expect(TokenType.IDENT).value
+        params = self.parse_func_params()
+        return_type = None
+
+        if self.at().type == TokenType.COLON:
+            self.adv()
+            return_type = self.get_type()
+
+        self.expect(TokenType.LCURL)
+        body : List[Stmt] = []
+
+        while self.not_at_end() and self.at().type != TokenType.RCURL:
+            stmt = self.parse_stmt()
+            body.append(stmt)
+        
+        self.expect(TokenType.RCURL)
+        return FunctionDeclaration(name, params, body, return_type)
+
+    def parse_func_params(self):
+        self.expect(TokenType.LPAREN)
+        params = []
+
+        if self.at().type == TokenType.RPAREN:
+            self.adv()
+            return params
+
+        while True:
+            name = self.expect(TokenType.IDENT).value
+            self.expect(TokenType.COLON)
+            type_ = self.get_type()
+            params.append(Property(name, type_))
+
+            if self.at().type == TokenType.COMMA:
+                self.adv()
+            else:
+                break
+
+        self.expect(TokenType.RPAREN)
+        return params
+
+    def parse_return(self):
+        self.adv()
+        value = self.parse_expr()
+        self.expect(TokenType.SEMICOLON)
+        return ReturnStmt(value)
 
 
     # Other Precedence Parsing Methods
