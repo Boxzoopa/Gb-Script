@@ -42,6 +42,24 @@ class VariableDecleration(Stmt):
             "value": self.value.to_dict()
         }
 
+class GroupDecleration(Stmt):
+    def __init__(self, name, type, size=0, items=None):
+        super().__init__(type)
+        self.name = name
+        self.type = type
+        self.size = size
+        self.items = items
+
+    def to_dict(self):
+        return {
+            "type": "GroupDecleration",
+            "name": self.name,
+            "declared_type": self.type,
+            "size": self.size,
+            "items": [item.to_dict() for item in self.items]  # Assuming items will be added later
+        }
+
+
 class Property:
     def __init__(self, name: str, type: str):
         self.name = name
@@ -73,6 +91,8 @@ class ObjectDeclaration(Stmt):
             "name": self.name,
             "properties": self.props_to_dict()
         }
+
+
 
 # Expressions
 class Identifier(Expr):
@@ -157,5 +177,18 @@ class AssignmentExpr(Expr):
         return {
             "type": "AssignmentExpr",
             "assignee": self.assignee.to_dict(),
+            "value": self.value.to_dict()
+        }
+    
+class IndexLiteral(Expr):
+    def __init__(self, index, value):
+        super().__init__()
+        self.index = index
+        self.value = value
+
+    def to_dict(self):
+        return {
+            "type": "IndexLiteral",
+            "index": self.index,
             "value": self.value.to_dict()
         }

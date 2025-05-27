@@ -43,7 +43,6 @@ class Parser:
     def get_type(self):
         if self.at().type == TokenType.IDENT:
             type_name = self.adv().value
-            print(type_name)
             if type_name not in ("int", "str", "bool", "float"):
                 self.errors.append(f"Unsupported type '{type_name}' at line {self.at().ln}, col {self.at().col}")
                 return None
@@ -71,6 +70,9 @@ class Parser:
                 return self.parse_var_decl()
             case TokenType.CONST:
                 return self.parse_var_decl()
+            
+            case TokenType.GRP:
+                return self.parse_group_decl()
             
             case TokenType.OBJ:
                 return self.parse_object_decl()
@@ -108,6 +110,37 @@ class Parser:
         return VariableDecleration(
             name, is_const=is_const, value=assigned_value, explicit_type=type_name
         )
+
+    def parse_group_decl(self):
+        self.adv()
+        name = self.expect(TokenType.IDENT).value
+        self.expect(TokenType.COLON)
+        group_type = self.get_type()
+        self.expect(TokenType.LBRAC)
+        size = self.expect(TokenType.NUMBER).value
+        self.expect(TokenType.RBRAC)
+
+        if self.at().type == TokenType.SEMICOLON:
+            self.adv()
+            return GroupDecleration(name, group_type, size)
+        
+        self.expect(TokenType.ASSIGNMENT)
+        self.expect(TokenType.LBRAC)
+        items = []
+        index = 0
+
+        while self.at().type != TokenType.RBRAC:
+            i = self.parse_expr()
+            item = IndexLiteral(index, i)
+            items.append(item)
+
+            if self.at().type == TokenType.COMMA:
+                self.adv()
+                index += 1
+
+        self.expect(TokenType.RBRAC)
+        self.expect(TokenType.SEMICOLON)
+        return GroupDecleration(name, group_type, size, items)
 
     def parse_object_decl(self):
         self.adv()

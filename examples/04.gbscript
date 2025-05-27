@@ -7,7 +7,7 @@ obj Rect {
 
 //const square = Rect(10, 10);
 
-//grp bar : str(3);
-//grp nums : int(5);
+grp phrases : str[3] = ["Hi", "bye", "Seeya"];
+grp nums : int[5] = [1, 2, 3];
 
 //const num = nums[0];
