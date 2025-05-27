@@ -15,19 +15,24 @@ def open_file(input_file):
         sys.exit(1)
 
 
-if __name__ == "__main__":
-    src = open_file("examples/01.gbscript")
-
-    lexer = Lexer()
-    tokens = lexer.tokenize(src)
-    if lexer.errors :
+def debug_lexer(toks, output =False):
+    if lexer.errors:
         print("GBSCRIPT::Lexer errors:")
         for err in lexer.errors:
             print(" -", err)
         exit(1)
 
-    #for tok in tokens:
-    #    print(tok)
+    if output:
+        for tok in toks:
+            print(tok)
+
+if __name__ == "__main__":
+    src = open_file("examples/02.gbscript")
+
+    lexer = Lexer()
+    tokens = lexer.tokenize(src)
+
+    debug_lexer(tokens, output=True)
 
     parser = Parser(tokens)
     program = parser.parse()
@@ -38,7 +43,7 @@ if __name__ == "__main__":
             print(" -", err)
         exit(1)
 
-    print(json.dumps(program.to_dict(), indent=2))
+    print(json.dumps(program.to_dict(), indent=3))
 
     
 

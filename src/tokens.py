@@ -6,6 +6,7 @@ class TokenType:
     IDENT = "identifier"
     NUMBER = "number"
     STRING = "string"
+    NULL = "null" # null literal
     EOF = "eof"
 
     LPAREN = "l_paren" # (

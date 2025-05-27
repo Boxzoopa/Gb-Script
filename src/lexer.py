@@ -15,6 +15,7 @@ KEYWORDS = {
     "new": TokenType.NEW,
     "import": TokenType.IMPORT,
     "from": TokenType.FROM,
+    "null": TokenType.NULL,
 }
 
 WHITESPACE = {' ', '\t'}
