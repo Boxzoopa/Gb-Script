@@ -92,6 +92,18 @@ class ObjectDeclaration(Stmt):
             "properties": self.props_to_dict()
         }
 
+class ObjectAssignment(Stmt):
+    def __init__(self, name: str, value: Expr):
+        super().__init__(type="ObjectAssignment")
+        self.name = name
+        self.value = value
+
+    def to_dict(self):  
+        return {
+            "type": "ObjectAssignment",
+            "name": self.name,
+            "value": self.value.to_dict()
+        }
 
 
 # Expressions
@@ -139,6 +151,19 @@ class NullLiteral(Expr):
             "value": self.value
         }
     
+class IndexLiteral(Expr):
+    def __init__(self, index, value):
+        super().__init__()
+        self.index = index
+        self.value = value
+
+    def to_dict(self):
+        return {
+            "type": "IndexLiteral",
+            "index": self.index,
+            "value": self.value.to_dict()
+        }
+    
 class BinaryExpr(Expr):
     def __init__(self, left, right, op):
         super().__init__()
@@ -179,16 +204,32 @@ class AssignmentExpr(Expr):
             "assignee": self.assignee.to_dict(),
             "value": self.value.to_dict()
         }
-    
-class IndexLiteral(Expr):
-    def __init__(self, index, value):
+
+class CallExpr(Expr):
+    def __init__(self, caller, args = List[Expr]):
         super().__init__()
-        self.index = index
-        self.value = value
+        self.caller = caller
+        self.args = args
 
     def to_dict(self):
         return {
-            "type": "IndexLiteral",
-            "index": self.index,
-            "value": self.value.to_dict()
+            "type": "CallExpr",
+            "caller": self.caller.to_dict(),
+            "args": [arg.to_dict() for arg in self.args]
         }
+
+class MemberExpr(Expr):
+    def __init__(self, object, property, computed=False):
+        super().__init__()
+        self.object = object
+        self.property = property
+        self.computed = computed  # Default to dot notation
+
+    def to_dict(self):
+        return {
+            "type": "MemberExpr",
+            "object": self.object.to_dict(),
+            "property": self.property.to_dict(),
+            "computed": self.computed
+        }
+        

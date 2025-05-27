@@ -12,7 +12,9 @@ KEYWORDS = {
     "while": TokenType.WHILE,
     "for": TokenType.FOR,
     "in": TokenType.IN,
-    "new": TokenType.NEW,
+    "or": TokenType.OR,
+    "and": TokenType.AND,
+    #"new": TokenType.NEW,
     "import": TokenType.IMPORT,
     "from": TokenType.FROM,
     "null": TokenType.NULL,
@@ -33,6 +35,7 @@ SINGLE_CHAR_TOKENS = {
     ".": TokenType.DOT,
     "*": TokenType.STAR,
     "/": TokenType.SLASH,
+    "%": TokenType.PERCENT,
 }
 
 class Lexer:

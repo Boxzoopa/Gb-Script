@@ -79,12 +79,18 @@ class Parser:
             
             case default:
                 expr = self.parse_expr()
+
+                # If it looks like an assignment (e.g. `a = b` or `a.b = c`)
+                if self.at().type in PRECEDENCE["assignment"]:
+                    self.adv()
+                    value = self.parse_expr()
+                    self.expect(TokenType.SEMICOLON)
+                    return AssignmentExpr(expr, value)
+
                 self.expect(TokenType.SEMICOLON)
                 return expr
 
-    def parse_expr(self):
-        return self.parse_assignment()
-
+    # Statements
     def parse_var_decl(self):
         is_const = self.adv().type == TokenType.CONST
         name = self.expect(TokenType.IDENT).value
@@ -133,10 +139,11 @@ class Parser:
             i = self.parse_expr()
             item = IndexLiteral(index, i)
             items.append(item)
+            index += 1
 
             if self.at().type == TokenType.COMMA:
                 self.adv()
-                index += 1
+
 
         self.expect(TokenType.RBRAC)
         self.expect(TokenType.SEMICOLON)
@@ -145,19 +152,55 @@ class Parser:
     def parse_object_decl(self):
         self.adv()
         name = self.expect(TokenType.IDENT).value
-        properties = []
-        self.expect(TokenType.LCURL)
-        while self.at().type != TokenType.RCURL:
-            prop_name = self.expect(TokenType.IDENT).value
-            self.expect(TokenType.COLON)
-            prop_type = self.get_type()
-            properties.append(Property(prop_name, prop_type))
-            if self.at().type == TokenType.COMMA:
-                self.adv()
-        
-        self.expect(TokenType.RCURL)
-        self.expect(TokenType.SEMICOLON)
-        return ObjectDeclaration(name, properties)
+
+        if self.at().type == TokenType.LCURL:
+            self.adv()
+            properties = []
+
+            while self.at().type != TokenType.RCURL:
+                prop_name = self.expect(TokenType.IDENT).value
+                self.expect(TokenType.COLON)
+                prop_type = self.get_type()
+                properties.append(Property(prop_name, prop_type))
+                if self.at().type == TokenType.COMMA:
+                    self.adv()
+
+            self.expect(TokenType.RCURL)
+            self.expect(TokenType.SEMICOLON)
+            return ObjectDeclaration(name, properties)
+
+        # handle object assignment obj x = rect.new()
+        elif self.at().type == TokenType.ASSIGNMENT:
+            self.adv()
+            expr = self.parse_expr()
+            self.expect(TokenType.SEMICOLON)
+            return VariableDecleration(name, value=expr, explicit_type="object")
+
+        else:
+            self.errors.append(f"Expected '{{' or '=' after object name '{name}' at line {self.at().ln}, col {self.at().col}")
+            return None
+
+
+    # Other Precedence Parsing Methods
+    def parse_expr(self):
+        return self.parse_logical()
+    
+    
+    def parse_logical(self):
+        left = self.parse_relational()
+        while self.at().type in PRECEDENCE["logical"]:
+            op = self.adv().value
+            right = self.parse_relational()
+            left = BinaryExpr(left, right, op)
+        return left
+
+    def parse_relational(self):
+        left = self.parse_additive()
+        while self.at().type in PRECEDENCE["relational"]:
+            op = self.adv().value
+            right = self.parse_additive()
+            left = BinaryExpr(left, right, op)
+        return left
 
     def parse_assignment(self):
         left  = self.parse_additive()
@@ -168,8 +211,6 @@ class Parser:
             return AssignmentExpr(left, value)
         
         return left
-
-
 
     def parse_additive(self):
         left = self.parse_multiplicitave()
@@ -192,11 +233,72 @@ class Parser:
         return left
 
     def parse_unary(self):
-        if self.at().type in (TokenType.DASH, TokenType.NOT, TokenType.PLUS):
+        if self.at().type in PRECEDENCE["unary"]:
             op = self.adv().value
             operand = self.parse_unary()  # recursive to support chains like --x
             return UnaryExpr(operand, op)
-        return self.parse_primary()
+        return self.parse_call_member()
+
+    # Call/Member Parsing
+    def parse_call_member(self):
+        member = self.parse_member()
+
+        if self.at().type == TokenType.LPAREN:  # function call
+            return self.parse_call(member)
+        
+        return member
+
+    def parse_call(self, caller):
+        call_expr = CallExpr(caller, self.parse_args())
+
+        if self.at().type == TokenType.LPAREN:
+            call_expr = self.parse_call(call_expr)
+
+        return call_expr
+    
+    def parse_args(self):
+        self.expect(TokenType.LPAREN)  # consume '('
+
+        if self.at().type == TokenType.RPAREN:
+            args = []
+        else:
+            args = self.parse_args_list()
+
+        self.expect(TokenType.RPAREN)  # consume ')'
+        return args
+    
+    def parse_args_list(self):
+        args = [self.parse_expr()]
+
+        while (self.not_at_end() and self.at().type == TokenType.COMMA and self.adv()):
+            args.append(self.parse_expr())
+
+        return args
+
+    def parse_member(self):
+        object_ = self.parse_primary()
+
+        while self.at().type in (TokenType.DOT, TokenType.LBRAC):
+            operator = self.adv()
+            property_ = None
+            computed = None
+
+            if operator.type == TokenType.DOT:
+                computed = False
+                property_ = self.parse_primary()
+
+                if property_ is None or not isinstance(property_, Identifier):
+                    self.errors.append(f"Expected identifier after '.' at line {self.at().ln}, col {self.at().col}")
+                    return None
+            else:
+                computed = True
+                property_ = self.parse_expr()  # parse expression for computed property
+                self.expect(TokenType.RBRAC)  # consume ']'
+        
+            object_ = MemberExpr(object_, property_, computed)
+            
+        return object_
+
 
     def parse_primary(self):
         tk = self.at().type
