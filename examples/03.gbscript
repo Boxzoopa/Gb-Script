@@ -1,5 +1,5 @@
 // 03.gbscript, Advanced Variable Declarations
-var foo = -10;
+var foo : int = -10;
 foo += 1;
 foo = foo + 30;
 

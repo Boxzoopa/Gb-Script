@@ -1,6 +1,4 @@
 // 02.gbscript, Variable Declarations
-
-
 var foo : int = 45;
 var bar = foo * 10;
 

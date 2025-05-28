@@ -17,7 +17,7 @@ class Expr(Stmt):
 # Statements
 class Program(Stmt):
     def __init__(self, body=None):
-        self.type="Program"
+        self.type = "Program"
         self.body : List[Stmt] = body if body is not None else []
 
     def to_dict(self):

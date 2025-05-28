@@ -2,9 +2,12 @@
 import sys
 from src.lexer import Lexer
 from src.parser import Parser
-from src.eval.evaluator import Evaluator
+from src.transpiler import IrTranspiler, CTranspiler
 import json
 
+from llvmlite import ir
+import llvmlite.binding as llvm
+from ctypes import CFUNCTYPE, c_int
 
 def open_file(input_file):
     try:
@@ -37,7 +40,7 @@ def debug_parser(program, output=False):
 
 
 if __name__ == "__main__":
-    src = open_file("examples/00.gbscript")
+    src = open_file("examples/01.gbscript")
 
     lexer = Lexer()
     tokens = lexer.tokenize(src)
@@ -47,11 +50,24 @@ if __name__ == "__main__":
     parser = Parser(tokens)
     program = parser.parse()
     
-    debug_parser(program, output=True)
+    debug_parser(program, output=False)
+
+    transpiler = IrTranspiler()
+    transpiler.transpile(program)
+
+    module = transpiler.module
+    module.triple = llvm.get_default_triple()
+
+    with open("debug/ir.ll", "w") as f:
+        f.write(str(module))
+
+    c_transpiler = CTranspiler()
+    c_transpiler.transpile(program)
+    with open("output.c", "w") as f:
+        f.write('\n'.join(c_transpiler.code))
 
 
-    #evaluator = Evaluator()
-    #evaluator.evaluate(program)
+
 
 
 
