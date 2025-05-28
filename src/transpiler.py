@@ -111,6 +111,7 @@ class CTranspiler:
         match node.type:
             case 'NumericLiteral':
                 return str(node.value), 'int'
+            
             case 'BinaryExpr':
                 # Could expand to nested expressions
                 left, _ = self.resolve_value(node.left)
