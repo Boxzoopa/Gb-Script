@@ -1,0 +1,55 @@
+// 08.gbcript syntax example for C transpiler
+
+
+  obj dog {
+    age: int,
+    woof_type: int,
+  };
+
+  func woof(wt: int) {
+    var x: int = 0;
+    while (x != 5) {
+      if (wt == 0) {
+        printf("woof 0");
+      } elif (wt == 1) {
+        printf("woof 1");
+      } // else also exists, like in c
+      x++;
+    }
+  }
+
+func main() : int
+{
+  var msg : str = "Hello world"; // variable types are static or dynamic
+
+  const number: int = 1;
+
+  var flag = 1;
+  var num2 : int = 56;
+  var undef;
+
+  var num3 = 5;
+
+  flag = 0;
+  msg = "bye";
+
+  grp nums : int[5] = [1, 2, 3, 4, 5];
+  grp empty : int[3] = [];
+
+  obj petty = dog {};
+  petty.age = 5;
+  petty.woof_type = 1;
+
+  woof(petty.woof_type);
+
+  var a : int = 0;
+  while (a < 10) {
+      a++ ;
+  }
+
+  for (var i = 0; i < 10; i++) {
+      printf("%d/n", i);
+  }
+
+  return 0;
+}

@@ -22,7 +22,7 @@ obj dog {
 };
 
 func createDog(age: int, wt: int) : object {
-  obj d = dog.new();
+  obj d = dog {};
 
   d.age = age;
   d.woof_type = wt;
@@ -56,7 +56,3 @@ for (var i = 0; i < 10; i++) {
     print(i);
 }
 
-iterate (num in nums) { // iterate is like foreach
-    print(num);
-}
-//Gbscript Code -> Lexer -> Parser -> Evaluator > Transformer(intermediate) > Transformer(C) > Generator(C)> C ompile(C + GBDK + GBScript Utils(custom library))

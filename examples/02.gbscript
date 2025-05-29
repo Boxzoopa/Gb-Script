@@ -1,9 +1,11 @@
 // 02.gbscript, Variable Declarations
 var foo : int = 45;
 var bar = foo * 10;
+var msg = "Hello World";
 
 foo = 1;
 
 const isGreater = foo;
 
-var undef;
+var undef: int;
+

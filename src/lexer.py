@@ -39,6 +39,7 @@ SINGLE_CHAR_TOKENS = {
     "*": TokenType.STAR,
     "/": TokenType.SLASH,
     "%": TokenType.PERCENT,
+    "&": TokenType.AND,
 }
 
 class Lexer:

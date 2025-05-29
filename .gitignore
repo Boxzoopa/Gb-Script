@@ -162,6 +162,7 @@ cython_debug/
 
 
 # Ignore Go build artifacts
+makefile
 *.exe
 *.out
 *.swp
@@ -180,3 +181,4 @@ _obj
 _test
 _testmain.go
 *.c
+.vscode

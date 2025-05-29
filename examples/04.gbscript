@@ -2,16 +2,17 @@
 
 obj Rect {
     width: int,
-    height: int,
+    height: int
 };
 
-//grp phrases : str[3] = ["Hi", "bye", "Seeya"];
-//grp nums : int[5] = [1, 2, 3];
-
-obj square = Rect.new();
-square.width;
+obj square = Rect {};
+square.width = 5;
 square.height = 5;
 
+grp phrases : str[3] = ["Hi", "bye", "Seeya"];
+grp nums : int[5] = [1, 2, 3];
 
-//const num = nums[0];
+
+
+const num = nums[0];
 

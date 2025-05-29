@@ -1,9 +1,14 @@
 // 06.gbscript, If Statements
 
-if (a == 1 and b != 5) {
-    print("1");
-} elif (a == 2) {
-    print("2");
-} else {
-    print("3");
+func main() : int {
+    var a = 1;
+    var b = 0;
+
+    if (a == 1 & b != 5) {
+        printf("1");
+    } elif (a == 2) {
+        printf("2");
+    } else {
+        printf("3");
+    }
 }

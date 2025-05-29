@@ -36,7 +36,7 @@ class VariableDeclaration(Stmt):
 
     def to_dict(self):
         return {
-            "type": "VariableDecleration",
+            "type": self.type,
             "name": self.name,
             "explicit_type": self.explicit_type,
             "is_const": self.is_const,
@@ -44,10 +44,10 @@ class VariableDeclaration(Stmt):
         }
 
 class GroupDeclaration(Stmt):
-    def __init__(self, name, type, size=0, items=None):
-        self.type = "GroupDecleration"
+    def __init__(self, name, _type, size=0, items=None):
+        self.type = "GroupDeclaration"
         self.name = name
-        self.type = type
+        self.declared_type = _type
         self.size = size
         self.items = items
 
@@ -55,21 +55,22 @@ class GroupDeclaration(Stmt):
         return {
             "type": "GroupDeclaration",
             "name": self.name,
-            "declared_type": self.type,
+            "declared_type": self.declared_type,
             "size": self.size,
             "items": [item.to_dict() for item in self.items]  # Assuming items will be added later
         }
 
 class Property:
     def __init__(self, name: str, type: str):
+        self.type = "Property"
         self.name = name
-        self.type = type
+        self.d_type = type
 
     def to_dict(self):
         return {
             "type": "Property",
             "name": self.name,
-            "declared_type": self.type
+            "declared_type": self.d_type
         }
     
 class ObjectDeclaration(Stmt):
@@ -113,6 +114,7 @@ class FunctionDeclaration(Stmt):
 class ReturnStmt(Stmt):
     def __init__(self, value=None):
         self.value = value or NullLiteral()  # Default to null if no value is provided
+        self.type = "ReturnStmt"
 
     def to_dict(self):
         return {
@@ -122,6 +124,7 @@ class ReturnStmt(Stmt):
     
 class IfStmt(Stmt):
     def __init__(self, conditions, then_branch, elif_branches=None, else_branch=None):
+        self.type = "IfStmt"
         self.conditions = conditions
         self.then_branch = then_branch
         self.elif_branches = elif_branches if elif_branches is not None else []
@@ -138,6 +141,7 @@ class IfStmt(Stmt):
     
 class WhileStmt(Stmt):
     def __init__(self, condition, body):
+        self.type = "WhileStmt"
         self.condition = condition
         self.body = body
 
@@ -150,6 +154,7 @@ class WhileStmt(Stmt):
     
 class ForStmt(Stmt):
     def __init__(self, init, condition, increment, body):
+        self.type = "ForStmt"
         self.init = init  # Typically a VariableDecleration or AssignmentExpr
         self.condition = condition
         self.increment = increment  # Usually an AssignmentExpr
@@ -164,19 +169,6 @@ class ForStmt(Stmt):
             "body": [stmt.to_dict() for stmt in self.body]
         }
 
-class IterateStmt(Stmt):
-    def __init__(self, iterable, iteratee, body):
-        self.iterable = iterable  # Typically an Identifier or a GroupDecleration
-        self.iteratee = iteratee # i.e. the n in 'for n in nums'
-        self.body = body
-
-    def to_dict(self):
-        return {
-            "type": "IterateStmt",
-            "iterable": self.iterable,
-            "iteratee": self.iteratee,
-            "body": [stmt.to_dict() for stmt in self.body]
-        }
 
 
 # Expressions
@@ -190,6 +182,9 @@ class Identifier(Expr):
             "type": "Identifier",
             "value": self.value
         }
+    
+    def __repr__(self):
+        return f"{self.value}"
 
 class NumericLiteral(Expr):
     def __init__(self, value):
@@ -201,6 +196,9 @@ class NumericLiteral(Expr):
             "type": "NumericLiteral",
             "value": self.value
         }
+    
+    def __repr__(self):
+        return f"{self.value}"
 
 class StringLiteral(Expr):
     def __init__(self, value):
@@ -212,6 +210,9 @@ class StringLiteral(Expr):
             "type": "StringLiteral",
             "value": self.value
         }
+        
+    def __repr__(self):
+        return f"'{self.value}'"
 
 class NullLiteral(Expr):
     def __init__(self):
@@ -223,10 +224,14 @@ class NullLiteral(Expr):
             "type": "NullLiteral",
             "value": self.value
         }
+     
+    def __repr__(self):
+        return "undefined"
     
 class IndexLiteral(Expr):
     def __init__(self, index, value):
         super().__init__()
+        self.type = "IndexLiteral"
         self.index = index
         self.value = value
 
@@ -237,6 +242,22 @@ class IndexLiteral(Expr):
             "value": self.value.to_dict()
         }
     
+    def __repr__(self):
+        return f"{self.index}, {self.value}"
+
+class ObjectLiteral(Expr):
+    def __init__(self, name: str):
+        self.type="ObjectLiteral"
+        self.struct_name = name
+
+    def to_dict(self):
+        return {
+            "type": "ObjectLiteral",
+            "struct_name": self.struct_name
+        }
+    
+    def __repr__(self):
+        return f"{self.struct_name}"
     
 class BinaryExpr(Expr):
     def __init__(self, left, right, op):
@@ -252,6 +273,9 @@ class BinaryExpr(Expr):
             "right": self.right.to_dict(),
             "operator": self.op  # or str(self.op)
         }
+    
+    def __repr__(self):
+        return f"{self.left} {self.op} {self.right}"
 
 class UnaryExpr(Expr):
     def __init__(self, right, op, postfix=False):
@@ -267,6 +291,9 @@ class UnaryExpr(Expr):
             "right": self.right.to_dict(),
             "postfix": self.postfix
         }
+    
+    def __repr__(self):
+        return f"{self.op}{self.right}" 
     
 class AssignmentExpr(Expr):
     def __init__(self, assignee, value, op="="):
@@ -296,6 +323,9 @@ class CallExpr(Expr):
             "caller": self.caller.to_dict(),
             "args": [arg.to_dict() for arg in self.args]
         }
+    
+    def __repr__(self):
+        return f"{self.caller}({', '.join(map(str, self.args))})"
 
 class MemberExpr(Expr):
     def __init__(self, object, property, computed=False):
@@ -311,4 +341,11 @@ class MemberExpr(Expr):
             "property": self.property.to_dict(),
             "computed": self.computed
         }
+    
+    def __repr__(self):
+        if self.computed == False:
+            return f"{self.object}.{self.property}"
+        else:
+            return f"{self.object}[{self.property}]"
+
         

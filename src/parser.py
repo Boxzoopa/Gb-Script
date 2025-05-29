@@ -92,9 +92,6 @@ class Parser:
             
             case TokenType.FOR:
                 return self.parse_for()
-            
-            case TokenType.ITERATE:
-                return self.parse_foreach()
         
             case default:
                 expr = self.parse_expr()
@@ -170,6 +167,7 @@ class Parser:
 
     def parse_object_decl(self):
         self.adv()
+
         name = self.expect(TokenType.IDENT).value
 
         if self.at().type == TokenType.LCURL:
@@ -188,10 +186,12 @@ class Parser:
             self.expect(TokenType.SEMICOLON)
             return ObjectDeclaration(name, properties)
 
-        # handle object assignment obj x = rect.new()
+        # handle object assignment obj x = rect {}
         elif self.at().type == TokenType.ASSIGNMENT:
             self.adv()
-            expr = self.parse_expr()
+            expr = ObjectLiteral(self.adv().value)
+            self.expect(TokenType.LCURL)
+            self.expect(TokenType.RCURL)
             self.expect(TokenType.SEMICOLON)
             return VariableDeclaration(name, value=expr, explicit_type="object")
 
@@ -208,6 +208,10 @@ class Parser:
         if self.at().type == TokenType.COLON:
             self.adv()
             return_type = self.get_type()
+            if return_type == "object":
+                self.expect(TokenType.LPAREN)
+                return_type = self.adv().value
+                self.expect(TokenType.RPAREN)
 
         self.expect(TokenType.LCURL)
         body : List[Stmt] = []
@@ -336,29 +340,6 @@ class Parser:
                 body.append(stmt)
         self.expect(TokenType.RCURL)
         return ForStmt(init, condition, increment, body)
-
-    def parse_foreach(self):
-        self.adv()
-        self.expect(TokenType.LPAREN)
-        iteratee = self.expect(TokenType.IDENT).value
-
-        self.expect(TokenType.IN)
-        iterable = self.expect(TokenType.IDENT).value
-
-        self.expect(TokenType.RPAREN)
-        self.expect(TokenType.LCURL)
-
-        body = []
-        while self.not_at_end() and self.at().type != TokenType.RCURL:
-            stmt = self.parse_stmt()
-            if stmt:
-                body.append(stmt)
-
-        self.expect(TokenType.RCURL)
-
-        return IterateStmt(iterable, iteratee, body)
-
-
 
     # Other Precedence Parsing Methods
     def parse_expr(self):
@@ -494,8 +475,7 @@ class Parser:
         match tk:
             case TokenType.IDENT:
                 return Identifier(self.adv().value)
-            
-            
+             
             case TokenType.NULL:
                 self.adv()
                 return NullLiteral()
@@ -505,7 +485,6 @@ class Parser:
             
             case TokenType.STRING:
                 return StringLiteral(str(self.adv().value))
-            
             
             case TokenType.LPAREN:
                 self.adv() # consume '('

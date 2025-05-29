@@ -1,15 +1,9 @@
 // 07.gbscript, Loops
 
 while (a < 10) {
-    a++ ;
+    a++;
 }
 
 for (var i = 0; i < 10; i++) {
     print(i);
-}
-
-grp nums : int[5] = [1, 2, 3];
-
-iterate (num in nums) {
-    num += 1;
 }

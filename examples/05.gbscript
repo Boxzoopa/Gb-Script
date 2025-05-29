@@ -6,5 +6,16 @@ func add(a:int, b:int) : int {
     return result;
 }
 
-add(1, 1);
+
+func main() : int {
+    var res = add(1, 1);
+
+    printf("%d\n", res);
+    printf("Hello World");
+    var msg = "hi";
+    printf(msg);
+
+    return 0;
+}
+
 
