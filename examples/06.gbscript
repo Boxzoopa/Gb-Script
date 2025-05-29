@@ -4,11 +4,13 @@ func main() : int {
     var a = 1;
     var b = 0;
 
-    if (a == 1 & b != 5) {
+    if (a == 1 && b != 5) {
         printf("1");
     } elif (a == 2) {
         printf("2");
     } else {
         printf("3");
     }
+
+    return 0;
 }

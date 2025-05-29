@@ -7,8 +7,14 @@ def ast_to_ir(node):
         case "Program":
             return IRProgram([ast_to_ir(stmt) for stmt in node.body])
 
-        case "NumericLiteral" | "StringLiteral" | "Identifier":
+        case "Identifier":
+            return IRIdent(node.value)
+
+        case "NumericLiteral" | "StringLiteral":
             return IRConst(node.value)
+        
+        case "NullLiteral":
+            return IRNull()
         
         case "Property":
             return IRProperty(node.name, node.d_type)
@@ -17,7 +23,7 @@ def ast_to_ir(node):
             return IRIndex(node.index, node.value)
         
         case "VariableDeclaration":
-            return IRVarDecl(node.name, infer_type(node), node.is_const, node.value)
+            return IRVarDecl(node.name, infer_type(node), node.is_const, ast_to_ir(node.value))
         
         case "ObjectDeclaration":
             props = []
@@ -63,7 +69,7 @@ def ast_to_ir(node):
             return IRFor(init, cond, inc, stmts)
 
         case "ReturnStmt":
-            return IRReturn(node.value)
+            return IRReturn(ast_to_ir(node.value))
 
         case "BinaryExpr":
             left_ir = ast_to_ir(node.left)
@@ -71,18 +77,18 @@ def ast_to_ir(node):
             return IRBinary(node.op, left_ir, right_ir)
         
         case "UnaryExpr":
-            return IRUnary(node.op, node.right, node.postfix)
+            return IRUnary(node.op, ast_to_ir(node.right), node.postfix)
         
         case "AssignmentExpr":
-            return IRAssignment(node.assignee, node.value, node.op)
+            return IRAssignment(node.assignee, ast_to_ir(node.value), node.op)
         
         case "CallExpr":
             args = []
-            for arg in node.args: args.append(ast_to_ir(arg))
-            return IRCall(node.caller.value, node.args)
+            args = [ast_to_ir(arg) for arg in node.args]
+            return IRCall(ast_to_ir(node.caller), args)
         
         case "MemberExpr":
-            pass
+            return IRMember(ast_to_ir(node.object), ast_to_ir(node.property), node.computed)
 
         case _:
             raise NotImplementedError(f"AST node type '{node.type}' not supported.")
@@ -109,5 +115,35 @@ def infer_type(node):
         
     return "auto"
     
-    
+def print_ir(node, indent=0):
+    prefix = ' ' * indent
+    if isinstance(node, IRProgram):
+        print(prefix + "Program:")
+        for stmt in node.body:
+            print_ir(stmt, indent + 2)
+    elif isinstance(node, IRFuncDecl):
+        print(f"{prefix}Function {node.name}({', '.join(arg.name for arg in node.args)}):")
+        for stmt in node.body:
+            print_ir(stmt, indent + 2)
+    elif isinstance(node, IRVarDecl):
+        print(f"{prefix}Var {node.name} ({node.var_type}) = {node.value}")
+    elif isinstance(node, IRGrpDecl):
+        print(f"{prefix}Group {node.name}[{node.size}] ({node.var_type}):")
+        for item in node.items:
+            print_ir(item, indent + 2)
+    elif isinstance(node, IRIndex):
+        print(f"{prefix}[{node.index}] = {node.value}")
+    elif isinstance(node, IRCall):
+        print(f"{prefix}Call {node.func}({', '.join(str(arg) for arg in node.args)})")
+    elif isinstance(node, IRBinary):
+        print(f"{prefix}{node.left} {node.op} {node.right}")
+    elif isinstance(node, IRUnary):
+        print(f"{prefix}{node.op}{node.right}")
+    elif isinstance(node, IRAssignment):
+        print(f"{prefix}{node.assignee} {node.op} {node.value}")
+    elif isinstance(node, IRReturn):
+        print(f"{prefix}Return {node.value}")
+    else:
+        print(f"{prefix}{node}")
+
     

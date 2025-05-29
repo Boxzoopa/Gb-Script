@@ -51,6 +51,15 @@ class IRConst(IRNode):
     def __repr__(self):
         return f"IRConst({self.value})"
 
+class IRIdent(IRNode):
+    def __init__(self, value):
+        super().__init__()
+        self.op = "indent"
+        self.value = value
+
+    def __repr__(self):
+        return f"IRIdent({self.value})"
+
 class IRProperty(IRNode):
     def __init__(self, name, declared_type):
         super().__init__()
@@ -164,6 +173,15 @@ class IRReturn(IRNode):
         return f"IRReturn({self.value})"
 
 
+class IRNull(IRNode):
+    def __init__(self):
+        super().__init__()
+        self.op = "null"
+        self.value = "null"
+
+    def __repr__(self):
+        return f"IRNull(null)"
+
 class IRBinary(IRNode):
     def __init__(self, operator, left, right):
         super().__init__()
@@ -218,5 +236,8 @@ class IRMember(IRNode):
         self.computed = computed
     
     def __repr__(self):
-        return f"IRMember({self.object}.{self.property}, {self.computed})"
+        if self.computed == False:
+            return f"IRMember({self.object}.{self.property}, {self.computed})"
+        else:
+            return f"IRMember({self.object}[{self.property}])"
 

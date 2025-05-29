@@ -3,6 +3,7 @@ import sys, os
 from src.lexer import Lexer
 from src.parser import Parser
 from src.transformer import ast_to_ir
+from src.transpiler import generate_c
 import json
 
 
@@ -33,7 +34,16 @@ def debug_parser(program, output=False):
 
     if output:
         print(json.dumps(program.to_dict(), indent=3))
+def debug_transformer(AST, pretty=False, output=False):
+    if pretty:
+        ir = ast_to_ir(AST).pretty()
+    else:
+        ir = ast_to_ir(AST)
 
+    if output:
+        print(ir)
+    
+    return ir
 
 if __name__ == "__main__":
     src = open_file("examples/08.gbscript")
@@ -44,12 +54,10 @@ if __name__ == "__main__":
 
     parser = Parser(tokens)
     program = parser.parse()
-    debug_parser(program, output=True)
+    debug_parser(program, output=False)
     
+    ir = debug_transformer(program, False, True)
 
-    ir = ast_to_ir(program)#.pretty()
-    print(ir)
-    #intermidiate = debug_transpiler(program, 'gbir')
-    #debug_transpiler(intermidiate, 'c')
-
+    c_code = generate_c(ir)
+    print(c_code)
     

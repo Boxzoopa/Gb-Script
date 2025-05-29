@@ -39,7 +39,6 @@ SINGLE_CHAR_TOKENS = {
     "*": TokenType.STAR,
     "/": TokenType.SLASH,
     "%": TokenType.PERCENT,
-    "&": TokenType.AND,
 }
 
 class Lexer:
@@ -196,6 +195,12 @@ class Lexer:
                     self.add_token(TokenType.NOT, '!')
                     i += 1
                     self.col += 1
+                continue
+            elif ch == '&':
+                if self.peek(source, i) == '&':
+                    self.add_token(TokenType.AND, '&&')
+                    i += 2
+                    self.col += 2
                 continue
             elif ch == '<':
                 if self.peek(source, i) == '=':
