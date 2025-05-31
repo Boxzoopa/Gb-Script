@@ -52,7 +52,7 @@ class TokenType:
     OBJ = "obj"
     STATE = "state"
     GRP = "grp"
-    SPRITE = "spr"
+    SPRITE = "sprite"
     NEW = "new"
     MODULE = "module"
     IMPORT = "import"

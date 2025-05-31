@@ -98,6 +98,10 @@ def ast_to_ir(node):
 
         case "ModuleNode":
             return IRModule(node.value)
+        
+        case "CPlicit":
+            return IRCBlock(node.code)
+
 
         case _:
             raise NotImplementedError(f"AST node type '{node.type}' not supported.")

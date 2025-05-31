@@ -17,9 +17,14 @@ MODULES = {
 def generate_c(ir, indent_level=0):
     if isinstance(ir, IRProgram):
         includes = []
+        globals = []
         for stmt in ir.body:
             if isinstance(stmt, IRModule):
                 includes.append(generate_c(stmt))
+            elif isinstance(stmt, IRCBlock):
+                globals.append(generate_c(stmt))
+            #elif isinstance(stmt, IRVarDecl) or isinstance(stmt, IRGrpDecl) or isinstance(stmt, IRFuncDecl):
+            #    globals.append(generate_c(stmt))
 
                 
 
@@ -47,6 +52,8 @@ def generate_c(ir, indent_level=0):
         # Add all includes at the top
         code_lines.extend(includes)
         code_lines.append("")  # blank line for readability
+        code_lines.extend(globals)
+        code_lines.append("")  # blank line
 
         # Generate main() function
         code_lines.append(f"{indent}void main() {{")
@@ -254,10 +261,13 @@ def generate_c(ir, indent_level=0):
             return f"{obj}.{prop}"
 
 
+
     elif isinstance(ir, IRProperty):
         return f"{convert_type(ir.declared_type)} {ir.name}"
 
-
+    
+    if isinstance(ir, IRCBlock):
+        return ir.value.strip()
 
 
     else:

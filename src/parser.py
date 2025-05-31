@@ -1,5 +1,7 @@
 from src.nodes import *
 from src.tokens import Token, TokenType
+from src.sprite import Sprite
+import os
 
 ## Precedence Levels Reference, Lowest to Highest
 PRECEDENCE = {
@@ -20,10 +22,11 @@ PRECEDENCE = {
 }
 
 class Parser:
-    def __init__(self, tokens):
+    def __init__(self, tokens, file_path=None):
         self.tokens = tokens
         self.current = 0
         self.errors = []
+        self.file_path = file_path 
 
 
     def not_at_end(self):
@@ -99,6 +102,9 @@ class Parser:
             
             case TokenType.MODULE:
                 return self.parse_primary()
+            
+            case TokenType.SPRITE:
+                return self.parse_sprite()
 
             case default:
 
@@ -366,6 +372,26 @@ class Parser:
                 body.append(stmt)
         self.expect(TokenType.RCURL)
         return ForStmt(init, condition, increment, body)
+
+    def parse_sprite(self):
+        # TODO: Add Sprite IDs
+        self.adv()
+        self.expect(TokenType.LPAREN)
+        sprite_filename = self.expect(TokenType.STRING).value
+        self.expect(TokenType.RPAREN)
+        self.expect(TokenType.SEMICOLON)
+
+        sprite_dir = os.path.dirname(self.file_path)
+        full_spr_path = os.path.join(sprite_dir, sprite_filename)
+
+        sprite_name = os.path.splitext(os.path.basename(sprite_filename))[0]
+
+        sprite = Sprite.from_file(full_spr_path)
+
+        c_code = sprite.get_c_array(f"{sprite_name}_tiles")
+
+        return CPlicit(c_code)
+
 
     # Other Precedence Parsing Methods
     def parse_expr(self):

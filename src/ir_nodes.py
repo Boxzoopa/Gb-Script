@@ -262,3 +262,14 @@ class IRModule(IRNode):
 
     def __repr__(self):
         return f"IRModule({self.value})"
+    
+class IRCBlock(IRNode):
+    def __init__(self, value):
+        super().__init__()
+        self.op = "c"
+        self.value = value
+
+    def __repr__(self):
+        return f"IRCBlock({self.value})"
+
+

@@ -60,6 +60,8 @@ def main():
 
     args = parser.parse_args()
 
+    input_f = args.input_file 
+
     # Enforce .gbs extension
     if not args.input_file.endswith(".gbs"):
         print("Error: Input file must have a .gbs extension.")
@@ -71,7 +73,7 @@ def main():
     tokens = lexer.tokenize(src)
     debug_lexer(lexer, tokens, output=args.debug_lexer)
 
-    parser_instance = Parser(tokens)
+    parser_instance = Parser(tokens, input_f)
     program = parser_instance.parse()
     debug_parser(parser_instance, program, output=args.debug_parser)
 

@@ -363,6 +363,7 @@ class MemberExpr(Expr):
 
 
 class ModuleNode(Expr):
+
     def __init__(self, value):
         self.type = "ModuleNode"
         self.value : str = value
@@ -375,3 +376,33 @@ class ModuleNode(Expr):
         
     def __repr__(self):
         return f"'{self.value}'"
+
+class CPlicit(Stmt):
+    def __init__(self, code: str):
+        self.type = "CPlicit"
+        self.code = code
+
+    def to_dict(self):
+        return {
+            "type": self.type,
+            "code": self.code
+        }
+
+    def __repr__(self):
+        return f"<CPlicit: {self.code[:30]}...>"
+
+class SpriteInstance(Stmt):
+    def __init__(self, name, code_array: list):
+        self.type = "SpriteInstance"
+        self.name = name
+        self.code_array = code_array  # Should be a list of CPlicit or similar
+
+    def to_dict(self):
+        return {
+            "type": self.type,
+            "name": self.name,
+            "code_array": [c.to_dict() for c in self.code_array]
+        }
+
+    def __repr__(self):
+        return f"<SpriteInstance: {len(self.code_array)} entries>"
