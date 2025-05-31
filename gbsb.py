@@ -5,6 +5,7 @@ from src.lexer import Lexer
 from src.parser import Parser
 from src.transformer import ast_to_ir
 from src.transpiler import generate_c
+from src.sprite import Sprite
 
 def open_file(input_file):
     try:
@@ -50,19 +51,9 @@ def debug_transformer(ast, pretty=False, output=False):
         print(ir)
     return ir
 
-def main():
-    parser = argparse.ArgumentParser(description="GBScript Transpiler (GBSB)")
-    parser.add_argument("input_file", help="Path to .gbs source file")
-    parser.add_argument("-o", "--output", help="Path to output .c file")
-    parser.add_argument("--debug-lexer", action="store_true", help="Print tokens")
-    parser.add_argument("--debug-parser", action="store_true", help="Print AST")
-    parser.add_argument("--debug-ir", action="store_true", help="Print IR")
-
-    args = parser.parse_args()
-
+def run_transpile(args):
     input_f = args.input_file 
 
-    # Enforce .gbs extension
     if not args.input_file.endswith(".gbs"):
         print("Error: Input file must have a .gbs extension.")
         sys.exit(1)
@@ -77,7 +68,6 @@ def main():
     program = parser_instance.parse()
     debug_parser(parser_instance, program, output=args.debug_parser)
 
-
     ir = debug_transformer(program, pretty=False, output=args.debug_ir)
 
     c_code = generate_c(ir)
@@ -86,6 +76,37 @@ def main():
         save_file(args.output, c_code)
     else:
         print(c_code)
+
+def run_view_sprite(args):
+    sprite = Sprite.from_file(args.sprite_file)
+    print(f"Sprite Name: {sprite.name}")
+    sprite.print_ascii()
+
+def main():
+    parser = argparse.ArgumentParser(description="GBScript Transpiler and Tools (GBSB)")
+    subparsers = parser.add_subparsers(dest="command")
+
+    # Subcommand: transpile
+    transpile_parser = subparsers.add_parser("build", help="Transpile a .gbs file to C")
+    transpile_parser.add_argument("input_file", help="Path to .gbs source file")
+    transpile_parser.add_argument("-o", "--output", help="Path to output .c file")
+    transpile_parser.add_argument("--debug-lexer", action="store_true", help="Print tokens")
+    transpile_parser.add_argument("--debug-parser", action="store_true", help="Print AST")
+    transpile_parser.add_argument("--debug-ir", action="store_true", help="Print IR")
+    transpile_parser.set_defaults(func=run_transpile)
+
+    # Subcommand: view-sprite
+    sprite_parser = subparsers.add_parser("spr", help="View a sprite from a .gbspr file")
+    sprite_parser.add_argument("sprite_file", help="Path to .gbspr sprite file")
+    sprite_parser.set_defaults(func=run_view_sprite)
+
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+
+    args.func(args)
 
 if __name__ == "__main__":
     main()
