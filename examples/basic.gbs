@@ -7,11 +7,9 @@ state load() {
 }
 
 state update() {
-    printf("Updating...");
 
 }
 
 state draw() {
-    printf("Drawing...");
 
 }
