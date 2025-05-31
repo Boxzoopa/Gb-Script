@@ -1,0 +1,8 @@
+// sprites.gbs
+
+const spr = sprite("spr.png");
+
+func main() {
+    draw_sprite(spr, 3, 4); // sprite, x, y,
+    printf("Hello World");
+}

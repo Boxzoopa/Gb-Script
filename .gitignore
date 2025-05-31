@@ -182,3 +182,4 @@ _test
 _testmain.go
 *.c
 .vscode
+asm

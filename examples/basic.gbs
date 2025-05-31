@@ -1,0 +1,17 @@
+// Basic GB-Script example
+module("stdgb")
+
+
+state load() {
+    printf("Hello World");
+}
+
+state update() {
+    printf("Updating...");
+
+}
+
+state draw() {
+    printf("Drawing...");
+
+}

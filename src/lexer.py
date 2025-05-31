@@ -12,15 +12,16 @@ KEYWORDS = {
     "else": TokenType.ELSE,
     "while": TokenType.WHILE,
     "for": TokenType.FOR,
-    "iterate": TokenType.ITERATE,
     "in": TokenType.IN,
     "or": TokenType.OR,
     "and": TokenType.AND,
+    "module": TokenType.MODULE,
     "import": TokenType.IMPORT,
     "from": TokenType.FROM,
     "null": TokenType.NULL,
     "return": TokenType.RETURN,
     "func" : TokenType.FUNC,
+    "state" : TokenType.STATE,
 }
 
 WHITESPACE = {' ', '\t'}

@@ -15,7 +15,8 @@ PRECEDENCE = {
     "unary": (TokenType.DASH, TokenType.NOT, TokenType.PLUS),
     "postfix": (TokenType.P_PLUS, TokenType.M_MINUS),
     "call": (TokenType.LPAREN, TokenType.DOT),
-    "primary": (TokenType.IDENT, TokenType.NUMBER, TokenType.STRING, TokenType.NULL),
+    "primary": (TokenType.IDENT, TokenType.NUMBER, TokenType.STRING, TokenType.NULL, TokenType.MODULE),
+    "speical": {TokenType.SPRITE}
 }
 
 class Parser:
@@ -44,7 +45,7 @@ class Parser:
     def get_type(self):
         if self.at().type == TokenType.IDENT:
             type_name = self.adv().value
-            if type_name not in ("int", "str", "object"):
+            if type_name not in ("int", "str", "object", "sprite"):
                 self.errors.append(f"Unsupported type '{type_name}' at line {self.at().ln}, col {self.at().col}")
                 return None
             return type_name
@@ -80,6 +81,9 @@ class Parser:
             
             case TokenType.FUNC:
                 return self.parse_func_decl()
+
+            case TokenType.STATE:
+                return self.parse_state()
             
             case TokenType.RETURN:
                 return self.parse_return()
@@ -92,8 +96,12 @@ class Parser:
             
             case TokenType.FOR:
                 return self.parse_for()
-        
+            
+            case TokenType.MODULE:
+                return self.parse_primary()
+
             case default:
+
                 expr = self.parse_expr()
 
                 # If it looks like an assignment (e.g. `a = b` or `a.b = c`)
@@ -127,6 +135,7 @@ class Parser:
         
         self.expect(TokenType.ASSIGNMENT)
         assigned_value = self.parse_expr()
+
         self.expect(TokenType.SEMICOLON)
 
         return VariableDeclaration(
@@ -222,7 +231,24 @@ class Parser:
         
         self.expect(TokenType.RCURL)
         return FunctionDeclaration(name, params, body, return_type)
+    
+    def parse_state(self):
+        self.adv()
+        name = self.expect(TokenType.IDENT).value
+        self.expect(TokenType.LPAREN)
+        self.expect(TokenType.RPAREN)
 
+        self.expect(TokenType.LCURL)
+        body : List[Stmt] = []
+
+        while self.not_at_end() and self.at().type != TokenType.RCURL:
+            stmt = self.parse_stmt()
+            body.append(stmt)
+        
+        self.expect(TokenType.RCURL)
+
+        return StateDeclaration(name, body)
+    
     def parse_func_params(self):
         self.expect(TokenType.LPAREN)
         params = []
@@ -486,6 +512,13 @@ class Parser:
             case TokenType.STRING:
                 return StringLiteral(str(self.adv().value))
             
+            case TokenType.MODULE:
+                self.adv()
+                self.expect(TokenType.LPAREN)
+                mod_name = self.expect(TokenType.STRING).value
+                self.expect(TokenType.RPAREN)
+                return ModuleNode(mod_name)
+    
             case TokenType.LPAREN:
                 self.adv() # consume '('
                 value = self.parse_expr()
@@ -497,3 +530,6 @@ class Parser:
                 self.adv()
                 return None
 
+        
+
+sprite_counter = 0

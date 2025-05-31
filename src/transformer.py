@@ -42,6 +42,11 @@ def ast_to_ir(node):
             args = []
             for arg in node.params: args.append(ast_to_ir(arg))
             return IRFuncDecl(node.name, args, node.return_type, stmts)
+
+        case "StateDeclaration":
+            stmts = []
+            for stmt in node.body: stmts.append(ast_to_ir(stmt))
+            return IRState(node.name, stmts)
         
         case "IfStmt":
             conds = []
@@ -89,6 +94,10 @@ def ast_to_ir(node):
         
         case "MemberExpr":
             return IRMember(ast_to_ir(node.object), ast_to_ir(node.property), node.computed)
+
+
+        case "ModuleNode":
+            return IRModule(node.value)
 
         case _:
             raise NotImplementedError(f"AST node type '{node.type}' not supported.")
@@ -147,3 +156,12 @@ def print_ir(node, indent=0):
         print(f"{prefix}{node}")
 
     
+sprite_id_map = {}
+next_sprite_id = 0
+
+def assign_sprite_id(source):
+    global next_sprite_id
+    if source not in sprite_id_map:
+        sprite_id_map[source] = next_sprite_id
+        next_sprite_id += 1
+    return sprite_id_map[source]

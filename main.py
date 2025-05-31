@@ -1,3 +1,4 @@
+# main.py
 import sys
 import json
 import argparse
@@ -69,21 +70,21 @@ def main():
 
     lexer = Lexer()
     tokens = lexer.tokenize(src)
-    debug_lexer(lexer, tokens, output=args.debug_lexer)
+    debug_lexer(lexer, tokens, True)
 
     parser_instance = Parser(tokens)
     program = parser_instance.parse()
-    debug_parser(parser_instance, program, output=args.debug_parser)
+    debug_parser(parser_instance, program, True)# output=args.debug_parser)
 
 
-    ir = debug_transformer(program, pretty=False, output=args.debug_ir)
+    ir = debug_transformer(program, pretty=False, output=True)
 
     c_code = generate_c(ir)
 
-    if args.output:
-        save_file(args.output, c_code)
-    else:
-        print(c_code)
+    #if args.output:
+    #    save_file(args.output, c_code)
+    #else:
+    print(c_code)
 
 if __name__ == "__main__":
     main()

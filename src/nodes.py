@@ -110,7 +110,20 @@ class FunctionDeclaration(Stmt):
             "return_type": self.return_type,
             "body": [stmt.to_dict() for stmt in self.body]
         }
+
+class StateDeclaration(Stmt):
+    def __init__(self, name: str, body: List[Stmt]):
+        self.type = "StateDeclaration"
+        self.name = name
+        self.body = body if body is not None else []
     
+    def to_dict(self):
+        return {
+            "type": "StateDeclaration",
+            "name": self.name,
+            "body": [stmt.to_dict() for stmt in self.body]
+        }
+
 class ReturnStmt(Stmt):
     def __init__(self, value=None):
         self.value = value or NullLiteral()  # Default to null if no value is provided
@@ -348,4 +361,17 @@ class MemberExpr(Expr):
         else:
             return f"{self.object}[{self.property}]"
 
+
+class ModuleNode(Expr):
+    def __init__(self, value):
+        self.type = "ModuleNode"
+        self.value : str = value
+
+    def to_dict(self):
+        return {
+            "type": "ModuleNode",
+            "value": self.value
+        }
         
+    def __repr__(self):
+        return f"'{self.value}'"

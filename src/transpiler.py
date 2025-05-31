@@ -7,15 +7,84 @@ CALL_ALIASES = {
     "print": "gbs_print",
 }
 
+MODULES = {
+    "std" : "#include <stdio.h>",
+    "GB" : "#include <gb/gb.h>",
+    "stdgb" : "#include <stdio.h>\n#include <gb/gb.h>",
+}
+
 
 def generate_c(ir, indent_level=0):
     if isinstance(ir, IRProgram):
-        stmts = []
+        includes = []
         for stmt in ir.body:
-            code = generate_c(stmt, indent_level)
-            if code:  # skip empty/null
-                stmts.append(get_indent(indent_level) + code + ";")
-        return "\n".join(stmts)
+            if isinstance(stmt, IRModule):
+                includes.append(generate_c(stmt))
+
+                
+
+        # Collect states by name for main function generation
+        load_state = None
+        update_state = None
+        draw_state = None
+
+
+        # region State
+        for stmt in ir.body:
+            if isinstance(stmt, IRState):
+                name = stmt.name.lower()
+                if name == "load":
+                    load_state = stmt
+                elif name == "update":
+                    update_state = stmt
+                elif name == "draw":
+                    draw_state = stmt
+
+        # 3. Generate final code
+        indent = get_indent(indent_level)
+        code_lines = []
+
+        # Add all includes at the top
+        code_lines.extend(includes)
+        code_lines.append("")  # blank line for readability
+
+        # Generate main() function
+        code_lines.append(f"{indent}void main() {{")
+
+
+        # Generate load body
+        if load_state:
+            load_lines = [generate_c(stmt, indent_level + 1) + ";" for stmt in load_state.body]
+            code_lines.extend(indent_lines(load_lines, indent_level + 1))
+
+        # Start while(1) loop
+        code_lines.append(f"{indent}\twhile(1) {{")
+
+        # Generate update body inside while
+        if update_state:
+            update_lines = [generate_c(stmt, indent_level + 2) + ";" for stmt in update_state.body]
+            code_lines.extend(indent_lines(update_lines, indent_level + 2))
+
+        # Generate draw body inside while
+        if draw_state:
+            draw_lines = [generate_c(stmt, indent_level + 2) + ";" for stmt in draw_state.body]
+            code_lines.extend(indent_lines(draw_lines, indent_level + 2))
+
+        # Close while and main braces
+        code_lines.append(f"{indent}\t}}")  # close while
+        code_lines.append(f"{indent}}}")  # close main
+        # endregion
+
+        return "\n".join(code_lines)
+
+    elif isinstance(ir, IRModule):
+        # Get the module name as string
+        module_name = None
+        ir_vl = ir.value
+        module_name = ir_vl
+
+        val = MODULES[module_name]
+        return str(val)
 
     elif isinstance(ir, IRNull):
         return ""
@@ -189,6 +258,8 @@ def generate_c(ir, indent_level=0):
         return f"{convert_type(ir.declared_type)} {ir.name}"
 
 
+
+
     else:
         raise NotImplementedError(f"Unhandled IR node: {type(ir).__name__}")
 
@@ -210,16 +281,13 @@ def convert_type(type_: str):
 
 """
 IRProgram([
-    IRWhile(IRBinary('<', IRIdent(a), IRConst(10)), 
-    do([
-        IRUnary(IRIdent(a)++)
-    ])), 
-    
-    IRFor(
-        IRVarDecl('i', int, IRConst(0)),
-        IRBinary('<', IRIdent(i), IRConst(10)),
-        IRUnary(IRIdent(i)++),
-        do([
-            IRCall(IRIdent(print), args([IRIdent(i)]))]))
-        ])
+    IRState(load, body([
+        IRCall(
+            IRIdent(printf), args([IRConst(Hello World)])
+        )
+    ])
+    ), 
+    IRState(update, body([])),
+    IRState(draw, body([]))])
 """
+

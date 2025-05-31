@@ -129,6 +129,17 @@ class IRFuncDecl(IRNode):
     def __repr__(self):
         return f"IRFuncDecl({self.name}, {self.return_type}, params({self.params}), body({self.body}))"
 
+class IRState(IRNode):
+    def __init__(self, name, body):
+        super().__init__()
+        self.op = "state_decl"
+        self.name = name
+        self.body = body
+
+    def __repr__(self):
+        return f"IRState({self.name}, body({self.body}))"
+
+
 class IRIf(IRNode):
     def __init__(self, conditions, then_branch, elif_branches, else_branch):
         super().__init__()
@@ -241,3 +252,13 @@ class IRMember(IRNode):
         else:
             return f"IRMember({self.object}[{self.property}])"
 
+
+
+class IRModule(IRNode):
+    def __init__(self, value):
+        super().__init__()
+        self.op = "mod"
+        self.value = value
+
+    def __repr__(self):
+        return f"IRModule({self.value})"
