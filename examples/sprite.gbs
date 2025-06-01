@@ -9,12 +9,17 @@ spr("sprite.gbspr");
 
 state load() {
     set_sprite_data(0, 0, sprite_tiles);
-    set_sprite_tile(0, 0);
     move_sprite(0, 75, 75);
-    SHOW_SPRITES;
     printf("Hello World");
+    SHOW_SPRITES;
+
 }
 
-state update() {}
+state update() {
+    set_sprite_tile(0, 0);
+	delay(500);
+	set_sprite_tile(0,1);
+	delay(500);
+}
 
 state draw() {}
