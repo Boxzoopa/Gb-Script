@@ -38,6 +38,9 @@ class Sprite:
     def add_tile(self, tile_id, ascii_rows):
         self.tiles[tile_id] = ascii_rows
 
+    def get_tile_no(self):
+        pass
+
     def get_tile_bytes(self):
         result = []
         for tile_id in sorted(self.tiles.keys()):

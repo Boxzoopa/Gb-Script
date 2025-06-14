@@ -22,7 +22,7 @@ KEYWORDS = {
     "return": TokenType.RETURN,
     "func" : TokenType.FUNC,
     "state" : TokenType.STATE,
-    "spr" : TokenType.SPRITE
+    "sprite" : TokenType.SPRITE
 }
 
 WHITESPACE = {' ', '\t'}

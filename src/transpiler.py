@@ -2,6 +2,7 @@
 from src.ir_nodes import *
 
 indent_level = 0
+sprites_loaded = 0
 # Maps GBScript built-in functions to their C equivalents or wrapped functions
 CALL_ALIASES = {
     "print": "gbs_print",
@@ -29,21 +30,18 @@ def generate_c(ir, indent_level=0):
                 
 
         # Collect states by name for main function generation
-        load_state = None
-        update_state = None
-        draw_state = None
+        onload_state = None
+        mainloop_state = None
 
 
         # region State
         for stmt in ir.body:
             if isinstance(stmt, IRState):
                 name = stmt.name.lower()
-                if name == "load":
-                    load_state = stmt
-                elif name == "update":
-                    update_state = stmt
-                elif name == "draw":
-                    draw_state = stmt
+                if name == "onload":
+                    onload_state = stmt
+                elif name == "gameloop":
+                    mainloop_state = stmt
 
         # 3. Generate final code
         indent = get_indent(indent_level)
@@ -60,22 +58,17 @@ def generate_c(ir, indent_level=0):
 
 
         # Generate load body
-        if load_state:
-            load_lines = [generate_c(stmt, indent_level + 1) + ";" for stmt in load_state.body]
+        if onload_state:
+            load_lines = [generate_c(stmt, indent_level + 1) + ";" for stmt in onload_state.body]
             code_lines.extend(indent_lines(load_lines, indent_level + 1))
 
         # Start while(1) loop
         code_lines.append(f"{indent}\twhile(1) {{")
 
         # Generate update body inside while
-        if update_state:
-            update_lines = [generate_c(stmt, indent_level + 2) + ";" for stmt in update_state.body]
+        if mainloop_state:
+            update_lines = [generate_c(stmt, indent_level + 2) + ";" for stmt in mainloop_state.body]
             code_lines.extend(indent_lines(update_lines, indent_level + 2))
-
-        # Generate draw body inside while
-        if draw_state:
-            draw_lines = [generate_c(stmt, indent_level + 2) + ";" for stmt in draw_state.body]
-            code_lines.extend(indent_lines(draw_lines, indent_level + 2))
 
         # Close while and main braces
         code_lines.append(f"{indent}\t}}")  # close while
@@ -245,12 +238,35 @@ def generate_c(ir, indent_level=0):
     elif isinstance(ir, IRCall):
         func_name = generate_c(ir.caller)
 
-        # Remap function name if it's in aliases
+        indent = get_indent(indent_level)
+        # Custom handling for special built-in functions
+        if func_name == "load_sprite" and len(ir.args) == 2:
+            arg = ir.args[0]
+            spr_num = ir.args[1]
+            if isinstance(arg, IRMember) and arg.computed:
+                array_name = generate_c(arg.object)
+                index = generate_c(arg.property)
+                spr_index = generate_c(spr_num)
+                return (
+                    f"set_sprite_data({index}, {int(spr_index)}, {array_name});\n"
+                    f"{indent}set_sprite_tile({index}, {int(index) + 1})"
+                )
+
+        elif func_name == "draw_sprite" and len(ir.args) == 3:
+            arg = ir.args[0]
+            x = generate_c(ir.args[1])
+            y = generate_c(ir.args[2])
+            if isinstance(arg, IRMember) and arg.computed:
+                index = generate_c(arg.property)
+                return f"move_sprite({index}, {x}, {y})"
+
+        # Default: remap aliases and fallback to C-style call
         if func_name in CALL_ALIASES:
             func_name = CALL_ALIASES[func_name]
 
         arg_list = [generate_c(arg) for arg in ir.args]
         return f"{func_name}({', '.join(arg_list)})"
+
 
     elif isinstance(ir, IRMember):
         obj = generate_c(ir.object)

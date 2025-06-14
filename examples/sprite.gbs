@@ -1,25 +1,20 @@
 // sprites.gbs
 module("stdgb")
 
-spr("sprite.gbspr");
-
-//explicit_c [
+//explicit [
 //    printf('Hello World');
 //];
+sprite("slime.gbspr");
 
-state load() {
-    set_sprite_data(0, 0, sprite_tiles);
-    move_sprite(0, 75, 75);
-    printf("Hello World");
+state onload() {
+    load_sprite(slime[0], 2);
+    load_sprite(slime[1], 2);
+    set_sprite_data(0, 2);
+}
+
+state gameloop() {
+    draw_sprite(slime[1], 75, 75);
+    draw_sprite(slime[0], 90, 75);
     SHOW_SPRITES;
 
 }
-
-state update() {
-    set_sprite_tile(0, 0);
-	delay(500);
-	set_sprite_tile(0,1);
-	delay(500);
-}
-
-state draw() {}

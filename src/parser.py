@@ -388,9 +388,10 @@ class Parser:
 
         sprite = Sprite.from_file(full_spr_path)
 
-        c_code = sprite.get_c_array(f"{sprite_name}_tiles")
+        c_code = CPlicit(sprite.get_c_array(f"{sprite_name}"))
 
-        return CPlicit(c_code)
+        return c_code
+    
 
 
     # Other Precedence Parsing Methods

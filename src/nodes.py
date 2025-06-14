@@ -392,16 +392,18 @@ class CPlicit(Stmt):
         return f"<CPlicit: {self.code[:30]}...>"
 
 class SpriteInstance(Stmt):
-    def __init__(self, name, code_array: list):
+    def __init__(self, name, code, spr_num):
         self.type = "SpriteInstance"
         self.name = name
-        self.code_array = code_array  # Should be a list of CPlicit or similar
+        self.code = code
+        self.sprite_number = spr_num
 
     def to_dict(self):
         return {
             "type": self.type,
             "name": self.name,
-            "code_array": [c.to_dict() for c in self.code_array]
+            "sprite_number" : self.sprite_number,
+            "code": [c.to_dict() for c in self.code_array]
         }
 
     def __repr__(self):
